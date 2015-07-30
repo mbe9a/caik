@@ -1,25 +1,17 @@
 #!/usr/bin/env python
-from setuptools import setup, find_packages
-from distutils.core import Extension
+from distutils.core import setup
 
-VERSION = '0.1.0'
+VERSION = '1.0'
 LONG_DESCRIPTION = """
 		cai-kit is a collection of python code to take and decode data in a coded aperture project imaging project.
 """
 
-setup(name='scikit-rf',
+setup(name='cai-kit',
 	version=VERSION,
 	description='Object Oriented Coded Aperture Imaging',
 	long_description=LONG_DESCRIPTION,
 	author='Michael Eller',
 	author_email='mbe9a@virginia.edu',
-	packages=find_packages(),
-	install_requires = [
-		'scikit-rf',
-		'numpy',
-		'pyvisa',
-		'matplotlib',
-		],
-	package_dir={'cat':'cat'},
-	include_package_data = True,
+	py_modules = ['matrixDecoder', 'instruments', 'cai'],
+	#package_dir= {'','cat'},
 	)

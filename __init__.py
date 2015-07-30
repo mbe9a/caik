@@ -6,6 +6,7 @@ __version__ = '1.0'
 from . import cai
 from . import matrixDecoder
 from . import instruments
+from . import cat
 
 from .cai import *
 from .matrixDecoder import *

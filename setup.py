@@ -3,7 +3,7 @@ from distutils.core import setup
 
 VERSION = '1.0'
 LONG_DESCRIPTION = """
-		cai-kit is a collection of python code to take and decode data in a coded aperture project imaging project.
+		cai-kit is a collection of python code to take and decode data in a coded aperture imaging project.
 """
 
 setup(name='cai-kit',

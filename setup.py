@@ -12,6 +12,6 @@ setup(name='cat',
 	long_description=LONG_DESCRIPTION,
 	author='Michael Eller',
 	author_email='mbe9a@virginia.edu',
-	py_modules = ['cat','matrixDecoder', 'instruments', 'cai'],
+	py_modules = ['caik','matrixDecoder', 'instruments', 'cai'],
 	#package_dir= {'','cat'},
 	)

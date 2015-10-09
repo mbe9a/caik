@@ -33,6 +33,7 @@ class CAI(object):
 		if start:
 			self.esp = dev.ESP()
 			self.zva = dev.ZVA()
+			self.lia = dev.LIA5209()
 		else:
 			print "NOTE: GPIB instuments have not been initialized."
 
@@ -42,9 +43,13 @@ class CAI(object):
 	def start_zva(self):
 		self.zva = dev.ZVA()
 
+	def start_lia(self):
+		self.lia = LIA5209()
+
 	def start_all(self):
 		self.esp = dev.ESP()
 		self.zva = dev.ZVA()
+		self.lia = dev.LIA5209()
 
 	def writeHText(self, o = '111-'):
 		f = open("matrices_rec.txt", "w")
@@ -155,6 +160,19 @@ class CAI(object):
 
 	def set_canvas(self, c):
 		self.canvasSize = c
+
+	def schottky_pic(self, resolution = 10):
+		image = []
+		self.esp.current_axis = 1
+		self.esp.position = 10
+		for x in range(0, resolution):
+			self.esp.move(0)
+			self.esp.current_axis = 1
+			self.esp.move(self.esp.position - resolution)
+			for y in range (0, resolution):
+				image[x][y] = self.lia.get_output()
+				self.esp.current_axis = 2
+				self.esp.move(self.esp.position + resolution)
 
 #simply turn -'s to 1's and vice versa
 def inverse(s):

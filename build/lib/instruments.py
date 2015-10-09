@@ -43,3 +43,29 @@ class ESP(ESP300):
 		self.position = x
 		self.wait_for_stop()
 		time.sleep(1)
+
+class LIA5209(object):
+	def __init__(self):
+		'''
+		A class to interface with the EG&G Princetion Applied Research
+		Lock-In Amplifier Model 5209
+		'''
+		self.inst = visa.ResourceManager().open_resource('GPIB0::6::INSTR')
+
+	def get_output(self):
+		self.inst.ask('OUT')
+
+	def get_ID(self):
+		self.inst.ask('ID')
+
+	def D1(self, bool = 0, n = 0):
+		if(bool):
+			self.inst.ask('D1 n')
+		else:
+			self.inst.ask('D1 ' + str(n))
+
+	def D2(self, bool = 0, n = 0):
+		if(bool):
+			self.inst.ask('D2 n')
+		else:
+			self.inst.ask('D2 ' + str(n))

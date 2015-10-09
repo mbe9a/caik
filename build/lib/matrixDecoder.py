@@ -81,9 +81,8 @@ class matrixDec(object):
 
 	def paint(self):
 		image = np.reshape(self.image, (math.pow(2, self.rank), math.pow(2, self.rank)))
-		#plt.imshow(image, cmap='gray', interpolation='nearest', 
-			#vmin=np.amin(self.image), vmax=np.amax(self.image))
-		plt.imshow(image, cmap='gray', interpolation='nearest', vmin = 0.015, vmax = 0.02)
+		plt.imshow(image, cmap='gray', interpolation='nearest', vmin=np.amin(self.image), vmax=np.amax(self.image))
+		#plt.imshow(image, cmap='gray', interpolation='nearest', vmin = 0.20932635, vmax = 0.24861209)
 		plt.show()
 
 
@@ -91,7 +90,7 @@ class matrixDec(object):
 def get_re(freq, base_dir):
 	DIR = os.getcwd()
 	os.chdir(base_dir)
-	f = open('ds,0.s1p', 'r')
+	f = open('object.s1p', 'r')
 	line = f.readline()
 	while True:
 		if line[0:3] == str(freq)[0:3]:
@@ -114,7 +113,7 @@ def get_im(freq, base_dir):
 	DIR = os.getcwd()
 	#os.chdir(base_dir)
 	#print base_dir
-	f = open('ds,0.s1p', 'r')
+	f = open('object.s1p', 'r')
 	line = f.readline()
 	while True:
 		if line[0:3] == str(freq)[0:3]:

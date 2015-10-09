@@ -111,7 +111,7 @@ class CAI(object):
 			self.esp.move(0)
 
 			os.chdir("..")
-			os.system("taskkill /im dllhost.exe")
+			os.system("taskkill /im Photos.exe")
 			time.sleep(1)
 
 	def take_image(self):

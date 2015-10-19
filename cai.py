@@ -10,9 +10,10 @@ import matrixDecoder as mm
 from PIL import Image, ImageDraw
 import subprocess
 import math
+import numpy as np
 import time as time
 import pylab
-from matplotlib.pyplot import *
+import matplotlib.pyplot as plt
 from skrf.media import Freespace
 
 class CAI(object):
@@ -161,18 +162,36 @@ class CAI(object):
 	def set_canvas(self, c):
 		self.canvasSize = c
 
-	def schottky_pic(self, resolution = 10):
-		image = []
+	#resolution^2 is how many pixels
+	#step size is how much the stage moves
+	def schottky_pic(self, resolution = 10, step = 5):
+		image = [[0 for x in range(resolution)] for x in range(resolution)]
 		self.esp.current_axis = 1
-		self.esp.position = 10
+		self.esp.move(step)
+		self.current_axis = 2
 		for x in range(0, resolution):
 			self.esp.move(0)
+			time.sleep(1)
 			self.esp.current_axis = 1
-			self.esp.move(self.esp.position - resolution)
+			self.esp.move(self.esp.position - step)
 			for y in range (0, resolution):
+				time.sleep(4)
 				image[x][y] = self.lia.get_output()
+				time.sleep(0.5)
 				self.esp.current_axis = 2
-				self.esp.move(self.esp.position + resolution)
+				time.sleep(0.5)
+				self.esp.move(self.esp.position + step)
+		self.esp.move(0)
+		self.esp.current_axis = 1
+		self.esp.move(0)
+		for x in range(0, resolution):
+			for y in range(0, resolution):
+				image[x][y] = float(image[x][y]) / 100
+		arr = np.array(image)
+		plt.imshow(arr)
+		print image
+		return image
+		
 
 #simply turn -'s to 1's and vice versa
 def inverse(s):

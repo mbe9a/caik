@@ -53,19 +53,19 @@ class LIA5209(object):
 		self.inst = visa.ResourceManager().open_resource('GPIB0::6::INSTR')
 
 	def get_output(self):
-		self.inst.ask('OUT')
+		return self.inst.ask('OUT')
 
 	def get_ID(self):
-		self.inst.ask('ID')
+		return self.inst.ask('ID')
 
 	def D1(self, bool = 0, n = 0):
 		if(bool):
-			self.inst.ask('D1 n')
+			return self.inst.ask('D1 n')
 		else:
-			self.inst.ask('D1 ' + str(n))
+			return self.inst.ask('D1 ' + str(n))
 
 	def D2(self, bool = 0, n = 0):
 		if(bool):
-			self.inst.ask('D2 n')
+			return self.inst.ask('D2 n')
 		else:
-			self.inst.ask('D2 ' + str(n))
+			return self.inst.ask('D2 ' + str(n))

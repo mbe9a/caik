@@ -38,11 +38,13 @@ class ESP(ESP300):
 		#print(self.inst.query("*IDN?"))
 
 		ESP300.__init__(self, address = 1, current_axis = 1, always_wait_for_stop=True, delay = 0.1)
+		#inst = visa.ResourceManager().open_resource('GPIB0::1::INSTR')
+		#del inst.timeout
 
 	def move(self, x):
+		#self.wait_for_stop()
 		self.position = x
 		self.wait_for_stop()
-		time.sleep(1)
 
 class LIA5209(object):
 	def __init__(self):

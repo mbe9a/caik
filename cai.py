@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 from skrf.media import Freespace
 
 class CAI(object):
-	def __init__(self, dimension = 4, canvasSize = 1024, start = False):
+	def __init__(self, dimension = 4, canvasSize = 1024, start = False, resolution = 10):
 		'''
 		A class to perform data collection and image creation
 
@@ -31,6 +31,10 @@ class CAI(object):
 		self.dimension = dimension
 		self.canvasSize = canvasSize
 		self.matrixList = createH(self.dimension,'111-', [])
+		self.xpos = 0
+		self.ypos = 0
+		self.resolution = resolution
+		self.schottky = [[0 for x in range(self.resolution)] for x in range(self.resolution)]
 		if start:
 			self.esp = dev.ESP()
 			self.zva = dev.ZVA()
@@ -164,28 +168,30 @@ class CAI(object):
 
 	#resolution^2 is how many pixels
 	#step size is how much the stage moves
-	def schottky_pic(self, resolution = 10, step = 5):
-		image = [[0 for x in range(resolution)] for x in range(resolution)]
-		self.esp.current_axis = 1
-		self.esp.move(step)
-		self.current_axis = 2
-		for x in range(0, resolution):
+	def schottky_pic(self, step = 5, start_x = 1):
+		image = [[0 for x in range(self.resolution)] for x in range(self.resolution)]
+		if(start_x == 0):
+			self.esp.current_axis = 1
+		else:
+			self.esp.current_axis = 2
+		for x in range(start_x, self.resolution):
+			print self.xpos
 			self.esp.move(0)
-			time.sleep(1)
 			self.esp.current_axis = 1
 			self.esp.move(self.esp.position - step)
-			for y in range (0, resolution):
-				time.sleep(4)
+			for y in range (0, self.resolution):
+				self.ypos = y
+				self.xpos = x
+				time.sleep(5)
 				image[x][y] = self.lia.get_output()
-				time.sleep(0.5)
+				self.schottky[x][y] = image[x][y]
 				self.esp.current_axis = 2
-				time.sleep(0.5)
 				self.esp.move(self.esp.position + step)
 		self.esp.move(0)
 		self.esp.current_axis = 1
 		self.esp.move(0)
-		for x in range(0, resolution):
-			for y in range(0, resolution):
+		for x in range(0, self.resolution):
+			for y in range(0, self.resolution):
 				image[x][y] = float(image[x][y]) / 100
 		arr = np.array(image)
 		plt.imshow(arr)

@@ -183,7 +183,7 @@ class CAI(object):
 				self.esp.current_axis = 2
 				self.esp.move(0)
 			self.esp.current_axis = 1
-			self.esp.move(self.esp.position - step)
+			self.esp.move(self.esp.position + step)
 			for y in range (start_y, self.resolution):
 				self.ypos = y
 				self.xpos = x

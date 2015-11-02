@@ -23,7 +23,7 @@ class ZVA(ZVA40):
 
 		self.get_network().write_touchstone(name)
 
-class ESP(ESP300):
+class ESP(Object):
 	def __init__(self):
 		'''
 		A class to control the ESP300 motor driver
@@ -32,19 +32,25 @@ class ESP(ESP300):
 			visa instrument object
 			current position
 		'''
-		#rm = visa.ResourceManager()
-		#assumes only one resource
-		#self.inst = rm.open_resource(rm.list_resources()[0])
+		rm = visa.ResourceManager()
+		self.inst = rm.open_resource('GPIB0::1::INSTR')
+		del self.inst.timeout
+		self.current_axis = 1
 		#print(self.inst.query("*IDN?"))
 
-		ESP300.__init__(self, address = 1, current_axis = 1, always_wait_for_stop=True, delay = 0.1)
+		#ESP300.__init__(self, address = 1, current_axis = 1, always_wait_for_stop=True, delay = 0.1)
 		#inst = visa.ResourceManager().open_resource('GPIB0::1::INSTR')
 		#del inst.timeout
 
 	def move(self, x):
 		#self.wait_for_stop()
-		self.position = x
-		self.wait_for_stop()
+		#self.position = x
+		#self.wait_for_stop()
+		self.inst.write(str(self.current_axis)+"PA"+str(x))
+		while self.inst.ask(str(self.current_axis)+"MD?") == 0:
+			time.sleep(0.01)
+		return
+
 
 class LIA5209(object):
 	def __init__(self):

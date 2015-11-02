@@ -36,19 +36,19 @@ class ESP(object):
 		self.inst = rm.open_resource('GPIB0::1::INSTR')
 		del self.inst.timeout
 		self.current_axis = 1
-		self.position = 0
-		#print(self.inst.query("*IDN?"))
 
-		#ESP300.__init__(self, address = 1, current_axis = 1, always_wait_for_stop=True, delay = 0.1)
-		#inst = visa.ResourceManager().open_resource('GPIB0::1::INSTR')
-		#del inst.timeout
+	@property
+	def position(self):
+	    return float(self.inst.ask(str(self.current_axis)+"TP"))
+
+	@position.setter
+	def position(self, x):
+		self.inst.write(str(self.current_axis)+"PA"+str(x))
+	
+	#ESP300.__init__(self, address = 1, current_axis = 1, always_wait_for_stop=True, delay = 0.1)
 
 	def move(self, x):
-		#self.wait_for_stop()
-		#self.position = x
-		#self.wait_for_stop()
-		self.inst.write(str(self.current_axis)+"PA"+str(x))
-		self.position = float(self.inst.ask(str(self.current_axis)+"TP?"))
+		self.position = x
 		while float(self.inst.ask(str(self.current_axis)+"MD?")) == 0:
 			time.sleep(0.01)
 		return

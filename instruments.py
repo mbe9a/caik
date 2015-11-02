@@ -23,7 +23,7 @@ class ZVA(ZVA40):
 
 		self.get_network().write_touchstone(name)
 
-class ESP(Object):
+class ESP(object):
 	def __init__(self):
 		'''
 		A class to control the ESP300 motor driver
@@ -36,6 +36,7 @@ class ESP(Object):
 		self.inst = rm.open_resource('GPIB0::1::INSTR')
 		del self.inst.timeout
 		self.current_axis = 1
+		self.position = 0
 		#print(self.inst.query("*IDN?"))
 
 		#ESP300.__init__(self, address = 1, current_axis = 1, always_wait_for_stop=True, delay = 0.1)
@@ -47,7 +48,8 @@ class ESP(Object):
 		#self.position = x
 		#self.wait_for_stop()
 		self.inst.write(str(self.current_axis)+"PA"+str(x))
-		while self.inst.ask(str(self.current_axis)+"MD?") == 0:
+		self.position = float(self.inst.ask(str(self.current_axis)+"TP?"))
+		while float(self.inst.ask(str(self.current_axis)+"MD?")) == 0:
 			time.sleep(0.01)
 		return
 

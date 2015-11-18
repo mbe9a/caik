@@ -32,7 +32,6 @@ class CAI(object):
 		self.canvasSize = canvasSize
 		self.matrixList = createH(self.dimension,'111-', [])
 		self.xpos = 0
-		self.ypos = 0
 		self.resolution = resolution
 		self.schottky = [[0 for x in range(self.resolution)] for x in range(self.resolution)]
 		if start:
@@ -168,36 +167,26 @@ class CAI(object):
 
 	#resolution^2 is how many pixels
 	#step size is how much the stage moves
-	def schottky_pic(self, step = 5, start_x = 0, start_y = 0):
-		#image = [[0 for x in range(self.resolution)] for x in range(self.resolution)]
-		if(start_x == 0):
-			self.esp.current_axis = 1
-			self.esp.move(0)
-		for x in range(start_x, self.resolution):
+	def schottky_pic(self, step = 5):
+		self.esp.current_axis = 1
+		self.esp.position = 0
+		self.esp.current_axis = 2
+		for x in range(0, self.resolution):
+			self.esp.position = 0
+			self.xpos = x
 			print self.xpos
-			if start_y != 0:
-				self.esp.current_axis = 2
-				self.esp.move(start_y)
-				start_y = 0
-			else:
-				self.esp.current_axis = 2
-				self.esp.move(0)
 			self.esp.current_axis = 1
-			self.esp.move(self.esp.position + step)
-			for y in range (start_y, self.resolution):
-				self.ypos = y
-				self.xpos = x
+			self.esp.position += step
+			for y in range (0, self.resolution):
 				time.sleep(5)
-				#image[x][y] = self.lia.get_output()
 				self.schottky[x][y] = self.lia.get_output()
 				self.esp.current_axis = 2
-				self.esp.move(self.esp.position + step)
-		self.esp.move(0)
+				self.esp.position += step
+		self.esp.position = 0
 		self.esp.current_axis = 1
-		self.esp.move(0)
+		self.esp.position = 0
 		for x in range(0, self.resolution):
 			for y in range(0, self.resolution):
-				#image[x][y] = float(image[x][y]) / 100
 				self.schottky[x][y] = float(self.schottky[x][y]) / 100
 		arr = np.array(self.schottky)
 		plt.imshow(arr)

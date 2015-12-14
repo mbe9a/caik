@@ -56,7 +56,7 @@ class LIA5209(object):
 		self.inst = visa.ResourceManager().open_resource('GPIB0::6::INSTR')
 
 	def get_output(self):
-		return self.inst.ask('OUT -15000')
+		return self.inst.ask('OUT')
 
 	def get_ID(self):
 		return self.inst.ask('ID')
@@ -72,3 +72,13 @@ class LIA5209(object):
 			return self.inst.ask('D2 n')
 		else:
 			return self.inst.ask('D2 ' + str(n))
+
+class KEITHLEY(object):
+	def __init__(self):
+		'''
+		Class to interface with the Keithley 2000 Multimeter
+		'''
+		self.inst = visa.ResourceManager().open_resource('GPIB0::8::INSTR')
+
+	def get_output(self):
+		return self.inst.ask('READ?')

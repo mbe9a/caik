@@ -38,6 +38,7 @@ class CAI(object):
 			self.esp = dev.ESP()
 			self.zva = dev.ZVA()
 			self.lia = dev.LIA5209()
+			self.mm = dev.KEITHLEY()
 		else:
 			print "NOTE: GPIB instuments have not been initialized."
 
@@ -50,10 +51,14 @@ class CAI(object):
 	def start_lia(self):
 		self.lia = LIA5209()
 
+	def start_mm(self):
+		self.mm = dev.KEITHLEY()
+
 	def start_all(self):
 		self.esp = dev.ESP()
 		self.zva = dev.ZVA()
 		self.lia = dev.LIA5209()
+		self.mm = dev.KEITHLEY()
 
 	def writeHText(self, o = '111-'):
 		f = open("matrices_rec.txt", "w")
@@ -177,8 +182,9 @@ class CAI(object):
 			print self.xpos
 			self.esp.current_axis = 1
 			self.esp.position += step
+			#time.sleep(5)
 			for y in range (0, self.resolution):
-				time.sleep(5)
+				time.sleep(7)
 				self.schottky[x][y] = self.lia.get_output()
 				self.esp.current_axis = 2
 				self.esp.position += step
@@ -192,7 +198,36 @@ class CAI(object):
 		plt.imshow(arr)
 		print self.schottky
 		return self.schottky
+
+	def schottky_pic_keithley(self, step = 5):
+		self.esp.current_axis = 1
+		self.esp.position = 0
+		self.esp.current_axis = 2
+		for x in range(0, self.resolution):
+			self.esp.position = 0
+			self.xpos = x
+			print self.xpos
+			self.esp.current_axis = 1
+			self.esp.position += step
+			for y in range (0, self.resolution):
+				time.sleep(5)
+				self.schottky[x][y] = self.mm.get_output()
+				self.esp.current_axis = 2
+				self.esp.position += step
+		self.esp.position = 0
+		self.esp.current_axis = 1
+		self.esp.position = 0
+		arr = np.array(self.schottky)
+		plt.imshow(arr)
+		print self.schottky
+		return self.schottky	
 		
+	def get_Center(self):
+		maximum = np.amax(self.schottky)
+		for x in range (0, self.resolution):
+			for y in range(0, self.resolution):
+				if self.schottky[x][y] == maximum:
+					return (x, y)
 
 #simply turn -'s to 1's and vice versa
 def inverse(s):

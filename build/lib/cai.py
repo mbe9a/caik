@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 from skrf.media import Freespace
 
 class CAI(object):
-	def __init__(self, dimension = 4, canvasSize = 1024, start = False, resolution = 10):
+	def __init__(self, dimension = 4, canvasSize = 1024, start = False, resolution = 10, lia = 1):
 		'''
 		A class to perform data collection and image creation
 
@@ -37,8 +37,12 @@ class CAI(object):
 		if start:
 			self.esp = dev.ESP()
 			self.zva = dev.ZVA()
-			self.lia = dev.LIA5209()
 			self.mm = dev.KEITHLEY()
+			if lia:
+				self.lia = dev.LIASR530()
+			else:
+				self.lia = dev.LIA5209()
+
 		else:
 			print "NOTE: GPIB instuments have not been initialized."
 
@@ -48,17 +52,24 @@ class CAI(object):
 	def start_zva(self):
 		self.zva = dev.ZVA()
 
-	def start_lia(self):
-		self.lia = LIA5209()
+	def start_lia(self, lia = 1):
+		if lia:
+			self.lia = dev.LIASR530()
+		else:
+			self.lia = dev.LIA5209()
 
 	def start_mm(self):
 		self.mm = dev.KEITHLEY()
 
-	def start_all(self):
+	def start_all(self, lia = 1):
 		self.esp = dev.ESP()
 		self.zva = dev.ZVA()
-		self.lia = dev.LIA5209()
 		self.mm = dev.KEITHLEY()
+		if lia:
+			self.lia = dev.LIASR530()
+		else:
+			self.lia = dev.LIA5209()
+
 
 	def writeHText(self, o = '111-'):
 		f = open("matrices_rec.txt", "w")
@@ -182,9 +193,9 @@ class CAI(object):
 			print self.xpos
 			self.esp.current_axis = 1
 			self.esp.position += step
-			#time.sleep(5)
+			time.sleep(2)
 			for y in range (0, self.resolution):
-				time.sleep(7)
+				time.sleep(5)
 				self.schottky[x][y] = self.lia.get_output()
 				self.esp.current_axis = 2
 				self.esp.position += step
@@ -193,10 +204,32 @@ class CAI(object):
 		self.esp.position = 0
 		for x in range(0, self.resolution):
 			for y in range(0, self.resolution):
-				self.schottky[x][y] = float(self.schottky[x][y]) / 100
+				self.schottky[x][y] = float(self.schottky[x][y])
 		arr = np.array(self.schottky)
+		CENTER_X = 0
+		CENTER_Y = 0
+		Y_80PERCENT = 0
+		X_80PERCENT = 0
+		for x in range(0, self.resolution):
+			for y in range(0, self.resolution):
+				if self.schottky[x][y] >= np.amax(arr):
+					CENTER_X = y
+					CENTER_Y = x
+				if (np.amax(arr) * 0.75) < self.schottky[x][y] < (np.amax(arr) * 0.85):
+					Y_80PERCENT = x
+					X_80PERCENT = y
+		radius = math.sqrt(math.pow((X_80PERCENT - CENTER_X), 2) + math.pow((Y_80PERCENT - CENTER_Y), 2)) * step
+		plotstr = ('Max: ' + str(np.amax(arr)) + ' V' + '\n' + 'Min: ' + str(np.amin(arr)) + 
+			' V' + '\n' + 'Center: ' + '(' + str(CENTER_X) + ', ' + str(CENTER_Y) + ')' + '\n' + 
+			'Est. Radius: ' + str(radius) + ' mm')
 		plt.imshow(arr)
-		print self.schottky
+		plt.colorbar().set_label(label = 'Volts')
+		plt.ylabel('Y (' + str(step) + ' mm)')
+		plt.xlabel('X (' + str(step) + ' mm)')
+		plt.title('ZBD Voltage vs Position')
+		plt.text(0, 0, plotstr, fontsize=10, verticalalignment='top',bbox=dict(facecolor='white', alpha=1))
+		fig = plt.gcf()
+		fig.gca().add_artist(plt.Circle((CENTER_X, CENTER_Y),radius * 2,color='w', alpha=1, fill = False))
 		return self.schottky
 
 	def schottky_pic_keithley(self, step = 5):
@@ -210,15 +243,19 @@ class CAI(object):
 			self.esp.current_axis = 1
 			self.esp.position += step
 			for y in range (0, self.resolution):
-				time.sleep(5)
+				time.sleep(7)
 				self.schottky[x][y] = self.mm.get_output()
 				self.esp.current_axis = 2
 				self.esp.position += step
 		self.esp.position = 0
 		self.esp.current_axis = 1
 		self.esp.position = 0
+		for x in range(0, self.resolution):
+			for y in range(0, self.resolution):
+				self.schottky[x][y] = float(self.schottky[x][y])
 		arr = np.array(self.schottky)
 		plt.imshow(arr)
+		plt.colorbar()
 		print self.schottky
 		return self.schottky	
 		

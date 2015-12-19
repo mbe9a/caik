@@ -73,6 +73,13 @@ class LIA5209(object):
 		else:
 			return self.inst.ask('D2 ' + str(n))
 
+class LIASR530(object):
+	def __init__(self):
+		self.inst = visa.ResourceManager().open_resource('GPIB0::23::INSTR')
+
+	def get_output(self):
+		return self.inst.ask('Q1')
+
 class KEITHLEY(object):
 	def __init__(self):
 		'''

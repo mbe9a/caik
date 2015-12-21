@@ -215,7 +215,7 @@ class CAI(object):
 				if self.schottky[x][y] >= np.amax(arr):
 					CENTER_X = y
 					CENTER_Y = x
-				if (np.amax(arr) * 0.75) < self.schottky[x][y] < (np.amax(arr) * 0.85):
+				if (np.amax(arr) * 0.80) <= self.schottky[x][y] < (np.amax(arr) * 0.85):
 					Y_80PERCENT = x
 					X_80PERCENT = y
 		radius = math.sqrt(math.pow((X_80PERCENT - CENTER_X), 2) + math.pow((Y_80PERCENT - CENTER_Y), 2)) * step

@@ -183,7 +183,7 @@ class CAI(object):
 
 	#resolution^2 is how many pixels
 	#step size is how much the stage moves
-	def schottky_pic(self, step = 5):
+	def schottky_pic(self, name, step = 5):
 		self.esp.current_axis = 1
 		self.esp.position = 0
 		self.esp.current_axis = 2
@@ -208,17 +208,17 @@ class CAI(object):
 		arr = np.array(self.schottky)
 		CENTER_X = 0
 		CENTER_Y = 0
-		Y_80PERCENT = 0
-		X_80PERCENT = 0
+		Y_R = 0
+		X_R = 0
 		for x in range(0, self.resolution):
 			for y in range(0, self.resolution):
 				if self.schottky[x][y] >= np.amax(arr):
 					CENTER_X = y
 					CENTER_Y = x
-				if (np.amax(arr) * 0.80) <= self.schottky[x][y] < (np.amax(arr) * 0.85):
-					Y_80PERCENT = x
-					X_80PERCENT = y
-		radius = math.sqrt(math.pow((X_80PERCENT - CENTER_X), 2) + math.pow((Y_80PERCENT - CENTER_Y), 2)) * step
+				if (np.amax(arr) * 0.36) <= self.schottky[x][y] < (np.amax(arr) * 0.40):
+					Y_R = x
+					X_R = y
+		radius = math.sqrt(math.pow((X_R - CENTER_X), 2) + math.pow((Y_R - CENTER_Y), 2)) * step
 		plotstr = ('Max: ' + str(np.amax(arr)) + ' V' + '\n' + 'Min: ' + str(np.amin(arr)) + 
 			' V' + '\n' + 'Center: ' + '(' + str(CENTER_X) + ', ' + str(CENTER_Y) + ')' + '\n' + 
 			'Est. Radius: ' + str(radius) + ' mm')
@@ -226,11 +226,23 @@ class CAI(object):
 		plt.colorbar().set_label(label = 'Volts')
 		plt.ylabel('Y (' + str(step) + ' mm)')
 		plt.xlabel('X (' + str(step) + ' mm)')
-		plt.title('ZBD Voltage vs Position')
+		plt.title(name + '\n' + 'ZBD Voltage vs Position')
 		plt.text(0, 0, plotstr, fontsize=10, verticalalignment='top',bbox=dict(facecolor='white', alpha=1))
 		fig = plt.gcf()
 		fig.gca().add_artist(plt.Circle((CENTER_X, CENTER_Y),radius * 2,color='w', alpha=1, fill = False))
+		os.makedirs(name)
+		os.chdir(name)
+		f = open(name, "w")
+		for x in range(0, self.resolution):
+			f.write(str(x) + ':	')
+			for y in range(0, self.resolution):
+				f.write(str(self.schottky[x][y]) + ', ')
+			f.write('\n')
+		f.close()
+		plt.savefig(name)
+		os.chdir('..')
 		return self.schottky
+
 
 	def schottky_pic_keithley(self, step = 5):
 		self.esp.current_axis = 1
@@ -413,3 +425,43 @@ def recursion_fix(dimension, matrixList):
 				temp2 = temp2 + temp[j]
 			final.append(temp2)
 		return final
+
+def redraw(name, step, resolution):
+	os.chdir(name)
+	schottky = [[0 for x in range(resolution)] for x in range(resolution)]
+	f = open(name, 'r')
+	for x in range(0, resolution):
+		line = f.readline()
+		line = line.split(': ')[1]
+		line = line.split(', ')
+		for y in range(0, resolution):
+			schottky[x][y] = float(line[y])
+	f.close()
+	arr = np.array(schottky)
+	CENTER_X = 0
+	CENTER_Y = 0
+	Y_R = 0
+	X_R = 0
+	for x in range(0, resolution):
+		for y in range(0, resolution):
+			if schottky[x][y] >= np.amax(arr):
+				CENTER_X = y
+				CENTER_Y = x
+			if (np.amax(arr) * 0.36) <= schottky[x][y] < (np.amax(arr) * 0.40):
+				Y_R = x
+				X_R = y
+	radius = math.sqrt(math.pow((X_R - CENTER_X), 2) + math.pow((Y_R - CENTER_Y), 2)) * step
+	plotstr = ('Max: ' + str(np.amax(arr)) + ' V' + '\n' + 'Min: ' + str(np.amin(arr)) + 
+		' V' + '\n' + 'Center: ' + '(' + str(CENTER_X) + ', ' + str(CENTER_Y) + ')' + '\n' + 
+		'Est. Radius: ' + str(radius) + ' mm')
+	plt.imshow(arr)
+	plt.colorbar().set_label(label = 'Volts')
+	plt.ylabel('Y (' + str(step) + ' mm)')
+	plt.xlabel('X (' + str(step) + ' mm)')
+	plt.title(name + '\n' + 'ZBD Voltage vs Position')
+	plt.text(0, 0, plotstr, fontsize=10, verticalalignment='top',bbox=dict(facecolor='white', alpha=1))
+	fig = plt.gcf()
+	fig.gca().add_artist(plt.Circle((CENTER_X, CENTER_Y),radius * 2, color='w', alpha=1, fill = False))
+	plt.savefig(name)
+	os.chdir('..')
+	return schottky

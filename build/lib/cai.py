@@ -190,7 +190,7 @@ class CAI(object):
 		for x in range(0, self.resolution):
 			self.esp.position = 0
 			self.xpos = x
-			print self.xpos
+			print 'Iteration: ' + str(self.xpos + 1)
 			self.esp.current_axis = 1
 			self.esp.position += step
 			time.sleep(2)

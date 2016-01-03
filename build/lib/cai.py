@@ -24,7 +24,7 @@ class CAI(object):
 		@Params
 		dimension: resolution of the mask
 		resolution = 2^dimension 
-		(dimension =1 -> 2x2, dimension = 2 -> 4x4)
+		(dimension = 1 -> 2x2, dimension = 2 -> 4x4)
 
 		canvasSize: size of the mask image
 		'''
@@ -243,7 +243,6 @@ class CAI(object):
 		os.chdir('..')
 		return self.schottky
 
-
 	def schottky_pic_keithley(self, step = 5):
 		self.esp.current_axis = 1
 		self.esp.position = 0
@@ -459,7 +458,7 @@ def redraw(name, step, resolution):
 	plt.ylabel('Y (' + str(step) + ' mm)')
 	plt.xlabel('X (' + str(step) + ' mm)')
 	plt.title(name + '\n' + 'ZBD Voltage vs Position')
-	plt.text(0, 0, plotstr, fontsize=10, verticalalignment='top',bbox=dict(facecolor='white', alpha=1))
+	plt.text(0, 0, plotstr, fontsize = 10, verticalalignment = 'top',bbox=dict(facecolor='white', alpha=1))
 	fig = plt.gcf()
 	fig.gca().add_artist(plt.Circle((CENTER_X, CENTER_Y),radius * 2, color='w', alpha=1, fill = False))
 	plt.savefig(name)

@@ -83,12 +83,13 @@ class CAI(object):
 		f.close()
 
 	def take_simple_cal(self):
-		self.esp.move(0)
+		self.esp.position = 0
 		time.sleep(1)
 		meas = {}
 		for x in range(0,6):
 			name = 'ds,' + str(x)
-			self.esp.move(0.04*x)
+			self.esp.position = 0.04*x
+			time.sleep(1)
 			n = self.zva.get_network(name = name)
 			meas[name] = n
 		delta = 40
@@ -96,7 +97,7 @@ class CAI(object):
 		air = Freespace(frequency = freq, z0=50)
 		ideals = [ air.delay_short(k*delta,'um',name='ds,%i'%k) for k in range(6)]
 		cal_q = rf.OnePort(measured = meas, ideals = ideals, sloppy_input=True, is_reciprocal=False)
-		self.esp.move(0)
+		self.esp.position = 0
 		cal_q.plot_caled_ntwks(ls='', marker='.')
 		return cal_q
 

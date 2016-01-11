@@ -23,7 +23,7 @@ class CAI(object):
 
 		@Params
 		dimension: resolution of the mask
-		resolution = 2^dimension 
+		resolution = 2^dimension (not resolution of schottky pic)
 		(dimension = 1 -> 2x2, dimension = 2 -> 4x4)
 
 		canvasSize: size of the mask image

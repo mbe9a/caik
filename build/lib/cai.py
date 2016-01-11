@@ -101,50 +101,50 @@ class CAI(object):
 		cal_q.plot_caled_ntwks(ls='', marker='.')
 		return cal_q
 
-	def take_H_cal(self):
-		white = (255, 255, 255)
-		hlist = self.matrixList
-		size = self.canvasSize
-		for i in range(0, len(hlist)):
-			image = Image.new("RGB", (size, size), white)
-			draw = ImageDraw.Draw(image)
-			matrix = hlist[i]
+	# def take_H_cal(self):
+	# 	white = (255, 255, 255)
+	# 	hlist = self.matrixList
+	# 	size = self.canvasSize
+	# 	for i in range(0, len(hlist)):
+	# 		image = Image.new("RGB", (size, size), white)
+	# 		draw = ImageDraw.Draw(image)
+	# 		matrix = hlist[i]
 
-			#start drawing!
-			drawH(matrix, size, 0, 0, 2, draw)
+	# 		#start drawing!
+	# 		drawH(matrix, size, 0, 0, 2, draw)
 
-			#start collecting data!
-			image.save("mask.png")
-			time.sleep(0.5)
-			del image
-			os.startfile('mask.png')
-			time.sleep(2)
-			#create files and save data!
-			os.makedirs(str(i))
-			os.chdir(str(i))
+	# 		#start collecting data!
+	# 		image.save("mask.png")
+	# 		time.sleep(0.5)
+	# 		del image
+	# 		os.startfile('mask.png')
+	# 		time.sleep(2)
+	# 		#create files and save data!
+	# 		os.makedirs(str(i))
+	# 		os.chdir(str(i))
 
-			self.zva.write_data('ds,0')
-			self.esp.move(0.04)
-			self.zva.write_data('ds,1')
-			self.esp.move(0.08)
-			self.zva.write_data('ds,2')
-			self.esp.move(0.12)
-			self.zva.write_data('ds,3')
-			self.esp.move(0.16)
-			self.zva.write_data('ds,4')
-			self.esp.move(0.20)
-			self.zva.write_data('ds,5')
-			self.esp.move(0)
+	# 		self.zva.write_data('ds,0')
+	# 		self.esp.move(0.04)
+	# 		self.zva.write_data('ds,1')
+	# 		self.esp.move(0.08)
+	# 		self.zva.write_data('ds,2')
+	# 		self.esp.move(0.12)
+	# 		self.zva.write_data('ds,3')
+	# 		self.esp.move(0.16)
+	# 		self.zva.write_data('ds,4')
+	# 		self.esp.move(0.20)
+	# 		self.zva.write_data('ds,5')
+	# 		self.esp.move(0)
 
-			os.chdir("..")
-			os.system("taskkill /im Photos.exe")
-			time.sleep(1)
+	# 		os.chdir("..")
+	# 		os.system("taskkill /im Photos.exe")
+	# 		time.sleep(1)
 
 	def take_image(self):
 		DIR = 'obj'
 		os.makedirs(DIR)
 		os.chdir(DIR)
-		self.esp.move(0)
+		self.esp.position = 0
 		white = (255, 255, 255)
 		hlist = self.matrixList
 		size = self.canvasSize
@@ -165,7 +165,7 @@ class CAI(object):
 			os.chdir(str(i))
 			self.zva.write_data('object')
 			os.chdir("..")
-			os.system("taskkill /im dllhost.exe")
+			os.system("taskkill /im rundll32.exe")
 			time.sleep(1)
 		os.chdir('..')
 
@@ -292,7 +292,7 @@ def inverse(s):
 def format2bn(s):
 	string = ""
 	for x in range(0, len(s)):
-		if s[x] == '-':
+		if s[x] == '1':
 			string += '1'
 		else:
 			string += '0'

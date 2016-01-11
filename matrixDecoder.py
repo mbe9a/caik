@@ -90,7 +90,7 @@ class matrixDec(object):
 def get_re(freq, base_dir):
 	DIR = os.getcwd()
 	os.chdir(base_dir)
-	f = open('object.s1p', 'r')
+	f = open('object corrected.s1p', 'r')
 	line = f.readline()
 	while True:
 		if line[0:3] == str(freq)[0:3]:

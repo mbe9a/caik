@@ -19,9 +19,9 @@ class ZVA(ZVA40):
 		'''
 		ZVA40.__init__(self, address = 20)
 		#you will want the ZVA to be connected when you initialize
-	def write_data(self,name):
+	def write_data(self,name, format = 'ma'):
 
-		self.get_network().write_touchstone(name)
+		self.get_network().write_touchstone(name, form = format)
 
 class ESP(object):
 	def __init__(self):

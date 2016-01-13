@@ -1,12 +1,14 @@
 #!/usr/bin/env python
-from distutils.core import setup
+import os
+from setuptools import setup
 
-VERSION = '1.0'
+VERSION = '1.2'
 LONG_DESCRIPTION = """
 		caik is a collection of python code to take and decode data in a coded aperture imaging project.
 """
 
-setup(name='caik',
+setup(
+	name='caik',
 	version=VERSION,
 	description='Object Oriented Coded Aperture Imaging',
 	long_description=LONG_DESCRIPTION,

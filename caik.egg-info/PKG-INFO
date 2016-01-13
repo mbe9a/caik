@@ -1,0 +1,12 @@
+Metadata-Version: 1.0
+Name: caik
+Version: 1.2
+Summary: Object Oriented Coded Aperture Imaging
+Home-page: UNKNOWN
+Author: Michael Eller
+Author-email: mbe9a@virginia.edu
+License: UNKNOWN
+Description: 
+        		caik is a collection of python code to take and decode data in a coded aperture imaging project.
+        
+Platform: UNKNOWN

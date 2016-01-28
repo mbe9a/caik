@@ -15,6 +15,9 @@ import time as time
 import pylab
 import matplotlib.pyplot as plt
 from skrf.media import Freespace
+%matplotlib inline
+rf.stylely()
+rf.stylely()
 
 class CAI(object):
 	def __init__(self, dimension = 4, canvasSize = 1024, start = False, resolution = 10, lia = 1):
@@ -23,7 +26,7 @@ class CAI(object):
 
 		@Params
 		dimension: resolution of the mask
-		resolution = 2^dimension (not resolution of schottky pic)
+		resolution = 2^dimension (not resolution of schottky pic, resolution of the resulting pixelated image)
 		(dimension = 1 -> 2x2, dimension = 2 -> 4x4)
 
 		canvasSize: size of the mask image
@@ -183,6 +186,23 @@ class CAI(object):
 			os.system("taskkill /im microsoft.photos.exe /f")
 			time.sleep(1)
 		os.chdir('..')
+
+	def bar_image(self, length):
+		'''
+			add powerpoint code here
+		'''
+		self.esp.current_axis = 2	#only for current setup
+		cal = self.take_simple_cal()
+		meas = []
+		temp = []
+		for x in range(0, length):
+			#display slide
+			n = self.zva.get_network()
+			meas[x] = n
+		temp.append(meas)
+		temp.append(meas)
+		image = np.array(temp)
+		plt.imshow(image)
 
 	def rename_folders(self, base_dir):
 		matrixList = recursion_fix(self.dimension, self.matrixList)

@@ -198,7 +198,8 @@ class CAI(object):
 		for x in range(0, length):
 			#display slide
 			n = self.zva.get_network()
-			meas[x] = n
+			n_c = cal.apply_cal(n)
+			meas[x] = n_c
 		temp.append(meas)
 		temp.append(meas)
 		image = np.array(temp)

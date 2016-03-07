@@ -15,7 +15,6 @@ import time as time
 import pylab
 import matplotlib.pyplot as plt
 from skrf.media import Freespace
-%matplotlib inline
 rf.stylely()
 rf.stylely()
 
@@ -187,24 +186,6 @@ class CAI(object):
 			time.sleep(1)
 		os.chdir('..')
 
-	def bar_image(self, length):
-		'''
-			add powerpoint code here
-		'''
-		self.esp.current_axis = 2	#only for current setup
-		cal = self.take_simple_cal()
-		meas = []
-		temp = []
-		for x in range(0, length):
-			#display slide
-			n = self.zva.get_network()
-			n_c = cal.apply_cal(n)
-			meas[x] = n_c
-		temp.append(meas)
-		temp.append(meas)
-		image = np.array(temp)
-		plt.imshow(image)
-
 	def rename_folders(self, base_dir):
 		matrixList = recursion_fix(self.dimension, self.matrixList)
 		os.chdir(base_dir)
@@ -227,12 +208,12 @@ class CAI(object):
 		for x in range(0, self.resolution):
 			self.esp.position = 0
 			self.xpos = x
-			print 'Iteration: ' + str(self.xpos + 1)
+			print str(self.xpos + 1),
 			self.esp.current_axis = 1
 			self.esp.position += step
 			time.sleep(2)
 			for y in range (0, self.resolution):
-				time.sleep(5)
+				time.sleep(3)
 				self.schottky[x][y] = self.lia.get_output()
 				self.esp.current_axis = 2
 				self.esp.position += step
@@ -247,12 +228,14 @@ class CAI(object):
 		CENTER_Y = 0
 		Y_R = 0
 		X_R = 0
+		check = False
 		for x in range(0, self.resolution):
 			for y in range(0, self.resolution):
 				if self.schottky[x][y] >= np.amax(arr):
 					CENTER_X = y
 					CENTER_Y = x
-				if (np.amax(arr) * 0.36) <= self.schottky[x][y] < (np.amax(arr) * 0.40):
+				if ((np.amax(arr) * 0.34) < self.schottky[x][y] < (np.amax(arr) * 0.368)) and check == False:
+					check = True
 					Y_R = x
 					X_R = y
 		radius = math.sqrt(math.pow((X_R - CENTER_X), 2) + math.pow((Y_R - CENTER_Y), 2)) * step
@@ -271,14 +254,13 @@ class CAI(object):
 		os.chdir(name)
 		f = open(name, "w")
 		for x in range(0, self.resolution):
-			f.write(str(x) + ':	')
+			f.write(str(x) + ':')
 			for y in range(0, self.resolution):
 				f.write(str(self.schottky[x][y]) + ', ')
 			f.write('\n')
 		f.close()
 		plt.savefig(name)
 		os.chdir('..')
-		return self.schottky
 
 	def schottky_pic_keithley(self, step = 5):
 		self.esp.current_axis = 1
@@ -468,7 +450,7 @@ def redraw(name, step, resolution):
 	f = open(name, 'r')
 	for x in range(0, resolution):
 		line = f.readline()
-		line = line.split(': ')[1]
+		line = line.split(':')[1]
 		line = line.split(', ')
 		for y in range(0, resolution):
 			schottky[x][y] = float(line[y])
@@ -478,12 +460,13 @@ def redraw(name, step, resolution):
 	CENTER_Y = 0
 	Y_R = 0
 	X_R = 0
+	check = False
 	for x in range(0, resolution):
 		for y in range(0, resolution):
 			if schottky[x][y] >= np.amax(arr):
 				CENTER_X = y
 				CENTER_Y = x
-			if (np.amax(arr) * 0.36) <= schottky[x][y] < (np.amax(arr) * 0.40):
+			if ((np.amax(arr) * 0.34) < schottky[x][y] < (np.amax(arr) * 0.368)) and check == False:
 				Y_R = x
 				X_R = y
 	radius = math.sqrt(math.pow((X_R - CENTER_X), 2) + math.pow((Y_R - CENTER_Y), 2)) * step
@@ -500,4 +483,8 @@ def redraw(name, step, resolution):
 	fig.gca().add_artist(plt.Circle((CENTER_X, CENTER_Y),radius * 2, color='w', alpha=1, fill = False))
 	plt.savefig(name)
 	os.chdir('..')
-	return schottky
+
+
+
+
+	

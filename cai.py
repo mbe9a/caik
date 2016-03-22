@@ -15,8 +15,6 @@ import time as time
 import pylab
 import matplotlib.pyplot as plt
 from skrf.media import Freespace
-rf.stylely()
-rf.stylely()
 
 class CAI(object):
 	def __init__(self, dimension = 4, canvasSize = 1024, start = False, resolution = 10, lia = 1):
@@ -118,45 +116,6 @@ class CAI(object):
 		cal_q.plot_caled_ntwks(ls='', marker='.')
 		return cal_q
 
-	# def take_H_cal(self):
-	# 	white = (255, 255, 255)
-	# 	hlist = self.matrixList
-	# 	size = self.canvasSize
-	# 	for i in range(0, len(hlist)):
-	# 		image = Image.new("RGB", (size, size), white)
-	# 		draw = ImageDraw.Draw(image)
-	# 		matrix = hlist[i]
-
-	# 		#start drawing!
-	# 		drawH(matrix, size, 0, 0, 2, draw)
-
-	# 		#start collecting data!
-	# 		image.save("mask.png")
-	# 		time.sleep(0.5)
-	# 		del image
-	# 		os.startfile('mask.png')
-	# 		time.sleep(2)
-	# 		#create files and save data!
-	# 		os.makedirs(str(i))
-	# 		os.chdir(str(i))
-
-	# 		self.zva.write_data('ds,0')
-	# 		self.esp.move(0.04)
-	# 		self.zva.write_data('ds,1')
-	# 		self.esp.move(0.08)
-	# 		self.zva.write_data('ds,2')
-	# 		self.esp.move(0.12)
-	# 		self.zva.write_data('ds,3')
-	# 		self.esp.move(0.16)
-	# 		self.zva.write_data('ds,4')
-	# 		self.esp.move(0.20)
-	# 		self.zva.write_data('ds,5')
-	# 		self.esp.move(0)
-
-	# 		os.chdir("..")
-	# 		os.system("taskkill /im Photos.exe")
-	# 		time.sleep(1)
-
 	def take_image(self):
 		DIR = 'obj'
 		os.makedirs(DIR)
@@ -223,6 +182,9 @@ class CAI(object):
 		for x in range(0, self.resolution):
 			for y in range(0, self.resolution):
 				self.schottky[x][y] = float(self.schottky[x][y])
+		self.write_scan_data(name, step)
+
+	def write_scan_data(self, name, step):
 		arr = np.array(self.schottky)
 		CENTER_X = 0
 		CENTER_Y = 0
@@ -287,8 +249,8 @@ class CAI(object):
 		plt.imshow(arr)
 		plt.colorbar()
 		print self.schottky
-		return self.schottky	
-		
+		return self.schottky
+    
 	def get_Center(self):
 		maximum = np.amax(self.schottky)
 		for x in range (0, self.resolution):
@@ -460,15 +422,25 @@ def redraw(name, step, resolution):
 	CENTER_Y = 0
 	Y_R = 0
 	X_R = 0
-	check = False
 	for x in range(0, resolution):
 		for y in range(0, resolution):
 			if schottky[x][y] >= np.amax(arr):
 				CENTER_X = y
 				CENTER_Y = x
-			if ((np.amax(arr) * 0.34) < schottky[x][y] < (np.amax(arr) * 0.368)) and check == False:
-				Y_R = x
-				X_R = y
+	check = False
+	xR = CENTER_Y
+	yR = CENTER_X
+	while(1):
+		if yR >= resolution or xR >= resolution:
+			print "Radius is out of scope"
+			break
+		if schottky[xR][yR] < (np.amax(arr) * 0.386):
+			Y_R = xR
+			X_R = yR
+			break
+		else:
+			yR += 1
+			xR += 1
 	radius = math.sqrt(math.pow((X_R - CENTER_X), 2) + math.pow((Y_R - CENTER_Y), 2)) * step
 	plotstr = ('Max: ' + str(np.amax(arr)) + ' V' + '\n' + 'Min: ' + str(np.amin(arr)) + 
 		' V' + '\n' + 'Center: ' + '(' + str(CENTER_X) + ', ' + str(CENTER_Y) + ')' + '\n' + 

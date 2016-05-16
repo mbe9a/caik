@@ -23,7 +23,7 @@ class CAI(object):
 
 		@Params
 		dimension: resolution of the mask
-		resolution = 2^dimension (not resolution of schottky pic)
+		resolution = 2^dimension (not resolution of schottky pic, resolution of the resulting pixelated image)
 		(dimension = 1 -> 2x2, dimension = 2 -> 4x4)
 
 		canvasSize: size of the mask image
@@ -82,7 +82,7 @@ class CAI(object):
 			f.write(matrix + '\n')
 		f.close()
 
-	def take_simple_cal(self):
+	def take_simple_cal(self, load = False):
 		self.esp.position = 0
 		time.sleep(1)
 		'''
@@ -91,69 +91,31 @@ class CAI(object):
 		meas = {}
 		for x in range(0,6):
 			name = 'ds,' + str(x)
-			self.esp.position = 0.04*x
+			self.esp.position = -0.04*x
 			time.sleep(1)
 			n = self.zva.get_network(name = name)
 			meas[name] = n
 		'''
 		get perfect load
 		'''
-		#name = 'pl'
-		#self.esp.position = 0
-		#time.sleep(8)
-		#n = self.zva.get_network(name = name)
-		#meas[name] = n
-		'''
-		calibrate
-		'''
+		if load:
+			name = 'pl'
+			self.esp.position = 0
+			time.sleep(8)
+			n = self.zva.get_network(name = name)
+			meas[name] = n
 		delta = 40
-		freq =meas.values()[0].frequency
+		freq = meas.values()[0].frequency
 		air = Freespace(frequency = freq, z0=50)
 		si = Freespace(frequency = freq , ep_r=11.7 , z0=50)
-		ideals = [ air.line(k*delta,'um',name='ds,%i'%k)**si.delay_short(350,'um') for k in range(6)] #+ [air.match(name = 'pl')]
+		if load:
+			ideals = [ air.delay_short(k*delta,'um',name='ds,%i'%k)**si.delay_short(0,'um') for k in range(6)] + [air.match(name = 'pl')]
+		else:
+			ideals = [ air.delay_short(k*delta,'um',name='ds,%i'%k) for k in range(6)] #**si.delay_short(350,'um')
 		cal_q = rf.OnePort(measured = meas, ideals = ideals, sloppy_input=True, is_reciprocal=False)
 		self.esp.position = 0
 		cal_q.plot_caled_ntwks(ls='', marker='.')
 		return cal_q
-
-	# def take_H_cal(self):
-	# 	white = (255, 255, 255)
-	# 	hlist = self.matrixList
-	# 	size = self.canvasSize
-	# 	for i in range(0, len(hlist)):
-	# 		image = Image.new("RGB", (size, size), white)
-	# 		draw = ImageDraw.Draw(image)
-	# 		matrix = hlist[i]
-
-	# 		#start drawing!
-	# 		drawH(matrix, size, 0, 0, 2, draw)
-
-	# 		#start collecting data!
-	# 		image.save("mask.png")
-	# 		time.sleep(0.5)
-	# 		del image
-	# 		os.startfile('mask.png')
-	# 		time.sleep(2)
-	# 		#create files and save data!
-	# 		os.makedirs(str(i))
-	# 		os.chdir(str(i))
-
-	# 		self.zva.write_data('ds,0')
-	# 		self.esp.move(0.04)
-	# 		self.zva.write_data('ds,1')
-	# 		self.esp.move(0.08)
-	# 		self.zva.write_data('ds,2')
-	# 		self.esp.move(0.12)
-	# 		self.zva.write_data('ds,3')
-	# 		self.esp.move(0.16)
-	# 		self.zva.write_data('ds,4')
-	# 		self.esp.move(0.20)
-	# 		self.zva.write_data('ds,5')
-	# 		self.esp.move(0)
-
-	# 		os.chdir("..")
-	# 		os.system("taskkill /im Photos.exe")
-	# 		time.sleep(1)
 
 	def take_image(self):
 		DIR = 'obj'
@@ -206,12 +168,12 @@ class CAI(object):
 		for x in range(0, self.resolution):
 			self.esp.position = 0
 			self.xpos = x
-			print 'Iteration: ' + str(self.xpos + 1)
+			print str(self.xpos + 1),
 			self.esp.current_axis = 1
 			self.esp.position += step
 			time.sleep(2)
 			for y in range (0, self.resolution):
-				time.sleep(5)
+				time.sleep(3)
 				self.schottky[x][y] = self.lia.get_output()
 				self.esp.current_axis = 2
 				self.esp.position += step
@@ -221,17 +183,22 @@ class CAI(object):
 		for x in range(0, self.resolution):
 			for y in range(0, self.resolution):
 				self.schottky[x][y] = float(self.schottky[x][y])
+		self.write_scan_data(name, step)
+
+	def write_scan_data(self, name, step):
 		arr = np.array(self.schottky)
 		CENTER_X = 0
 		CENTER_Y = 0
 		Y_R = 0
 		X_R = 0
+		check = False
 		for x in range(0, self.resolution):
 			for y in range(0, self.resolution):
 				if self.schottky[x][y] >= np.amax(arr):
 					CENTER_X = y
 					CENTER_Y = x
-				if (np.amax(arr) * 0.36) <= self.schottky[x][y] < (np.amax(arr) * 0.40):
+				if ((np.amax(arr) * 0.34) < self.schottky[x][y] < (np.amax(arr) * 0.368)) and check == False:
+					check = True
 					Y_R = x
 					X_R = y
 		radius = math.sqrt(math.pow((X_R - CENTER_X), 2) + math.pow((Y_R - CENTER_Y), 2)) * step
@@ -250,14 +217,13 @@ class CAI(object):
 		os.chdir(name)
 		f = open(name, "w")
 		for x in range(0, self.resolution):
-			f.write(str(x) + ':	')
+			f.write(str(x) + ':')
 			for y in range(0, self.resolution):
 				f.write(str(self.schottky[x][y]) + ', ')
 			f.write('\n')
 		f.close()
 		plt.savefig(name)
 		os.chdir('..')
-		return self.schottky
 
 	def schottky_pic_keithley(self, step = 5):
 		self.esp.current_axis = 1
@@ -284,8 +250,8 @@ class CAI(object):
 		plt.imshow(arr)
 		plt.colorbar()
 		print self.schottky
-		return self.schottky	
-		
+		return self.schottky
+    
 	def get_Center(self):
 		maximum = np.amax(self.schottky)
 		for x in range (0, self.resolution):
@@ -447,7 +413,7 @@ def redraw(name, step, resolution):
 	f = open(name, 'r')
 	for x in range(0, resolution):
 		line = f.readline()
-		line = line.split(': ')[1]
+		line = line.split(':')[1]
 		line = line.split(', ')
 		for y in range(0, resolution):
 			schottky[x][y] = float(line[y])
@@ -462,9 +428,20 @@ def redraw(name, step, resolution):
 			if schottky[x][y] >= np.amax(arr):
 				CENTER_X = y
 				CENTER_Y = x
-			if (np.amax(arr) * 0.36) <= schottky[x][y] < (np.amax(arr) * 0.40):
-				Y_R = x
-				X_R = y
+	check = False
+	xR = CENTER_Y
+	yR = CENTER_X
+	while(1):
+		if yR >= resolution or xR >= resolution:
+			print "Radius is out of scope"
+			break
+		if schottky[xR][yR] < (np.amax(arr) * 0.386):
+			Y_R = xR
+			X_R = yR
+			break
+		else:
+			yR += 1
+			xR += 1
 	radius = math.sqrt(math.pow((X_R - CENTER_X), 2) + math.pow((Y_R - CENTER_Y), 2)) * step
 	plotstr = ('Max: ' + str(np.amax(arr)) + ' V' + '\n' + 'Min: ' + str(np.amin(arr)) + 
 		' V' + '\n' + 'Center: ' + '(' + str(CENTER_X) + ', ' + str(CENTER_Y) + ')' + '\n' + 
@@ -479,4 +456,8 @@ def redraw(name, step, resolution):
 	fig.gca().add_artist(plt.Circle((CENTER_X, CENTER_Y),radius * 2, color='w', alpha=1, fill = False))
 	plt.savefig(name)
 	os.chdir('..')
-	return schottky
+
+
+
+
+	

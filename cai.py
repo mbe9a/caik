@@ -82,7 +82,7 @@ class CAI(object):
 			f.write(matrix + '\n')
 		f.close()
 
-	def take_simple_cal(self):
+	def take_simple_cal(self, load = False):
 		self.esp.position = 0
 		time.sleep(1)
 		'''
@@ -91,26 +91,27 @@ class CAI(object):
 		meas = {}
 		for x in range(0,6):
 			name = 'ds,' + str(x)
-			self.esp.position = 0.04*x
+			self.esp.position = -0.04*x
 			time.sleep(1)
 			n = self.zva.get_network(name = name)
 			meas[name] = n
 		'''
 		get perfect load
 		'''
-		name = 'pl'
-		self.esp.position = 0
-		time.sleep(8)
-		n = self.zva.get_network(name = name)
-		meas[name] = n
-		'''
-		calibrate
-		'''
+		if load:
+			name = 'pl'
+			self.esp.position = 0
+			time.sleep(8)
+			n = self.zva.get_network(name = name)
+			meas[name] = n
 		delta = 40
-		freq =meas.values()[0].frequency
+		freq = meas.values()[0].frequency
 		air = Freespace(frequency = freq, z0=50)
 		si = Freespace(frequency = freq , ep_r=11.7 , z0=50)
-		ideals = [ air.line(k*delta,'um',name='ds,%i'%k)**si.delay_short(350,'um') for k in range(6)] + [air.match(name = 'pl')]
+		if load:
+			ideals = [ air.delay_short(k*delta,'um',name='ds,%i'%k)**si.delay_short(0,'um') for k in range(6)] + [air.match(name = 'pl')]
+		else:
+			ideals = [ air.delay_short(k*delta,'um',name='ds,%i'%k) for k in range(6)] #**si.delay_short(350,'um')
 		cal_q = rf.OnePort(measured = meas, ideals = ideals, sloppy_input=True, is_reciprocal=False)
 		self.esp.position = 0
 		cal_q.plot_caled_ntwks(ls='', marker='.')

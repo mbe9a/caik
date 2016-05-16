@@ -109,7 +109,7 @@ class CAI(object):
 		air = Freespace(frequency = freq, z0=50)
 		si = Freespace(frequency = freq , ep_r=11.7 , z0=50)
 		if load:
-			ideals = [ air.delay_short(k*delta,'um',name='ds,%i'%k)**si.delay_short(0,'um') for k in range(6)] + [air.match(name = 'pl')]
+			ideals = [ air.delay_short(k*delta,'um',name='ds,%i'%k) for k in range(6)] + [air.match(name = 'pl')]
 		else:
 			ideals = [ air.delay_short(k*delta,'um',name='ds,%i'%k) for k in range(6)] #**si.delay_short(350,'um')
 		cal_q = rf.OnePort(measured = meas, ideals = ideals, sloppy_input=True, is_reciprocal=False)

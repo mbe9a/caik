@@ -281,9 +281,10 @@ def format2bn(s):
 
 #take a list of 1 and - matrices and convert to binary
 def list2bn(ml):
+	new_list = cai.recursion_fix(dim, ml)
     bn = []
     for x in range(0,len(ml)):
-        bn.append(cai.format2bn(ml[x]))
+        bn.append(cai.format2bn(new_list[x]))
     return bn
 
 #form the inverse matrix list

@@ -279,6 +279,20 @@ def format2bn(s):
 			string += '0'
 	return string
 
+#take a list of 1 and - matrices and convert to binary
+def list2bn(ml):
+    bn = []
+    for x in range(0,len(ml)):
+        bn.append(cai.format2bn(ml[x]))
+    return bn
+
+#form the inverse matrix list
+def inverse_ML(ml):
+    inv = []
+    for x in range(0,len(ml)):
+        inv.append(cai.inverse(ml[x]))
+    return inv
+
 #rotating the h matrix to create the different combos 
 #'s' is the string to shift, 'n' is how many times
 def shift(s, n):

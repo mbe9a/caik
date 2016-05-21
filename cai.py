@@ -206,9 +206,10 @@ class CAI(object):
 			' V' + '\n' + 'Center: ' + '(' + str(CENTER_X) + ', ' + str(CENTER_Y) + ')' + '\n' + 
 			'Est. Radius: ' + str(radius) + ' mm')
 		plt.imshow(arr)
-		plt.colorbar().set_label(label = 'Volts')
+		plt.colorbar().set_label(label = 'Volts',rotation = 'horizontal')
 		plt.ylabel('Y (' + str(step) + ' mm)')
 		plt.xlabel('X (' + str(step) + ' mm)')
+		grid(0)
 		plt.title(name + '\n' + 'ZBD Voltage vs Position')
 		plt.text(0, 0, plotstr, fontsize=10, verticalalignment='top',bbox=dict(facecolor='white', alpha=1))
 		fig = plt.gcf()
@@ -280,12 +281,12 @@ def format2bn(s):
 	return string
 
 #take a list of 1 and - matrices and convert to binary
-def list2bn(ml):
+def list2bn(dim, ml):
 	new_list = cai.recursion_fix(dim, ml)
-    bn = []
-    for x in range(0,len(ml)):
-        bn.append(cai.format2bn(new_list[x]))
-    return bn
+	bn = []
+	for x in range(0,len(ml)):
+		bn.append(cai.format2bn(new_list[x]))
+	return bn
 
 #form the inverse matrix list
 def inverse_ML(ml):

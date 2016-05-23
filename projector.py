@@ -3,9 +3,8 @@ Alex Arsenovic, Michael Eller, Noah Sauber
 UVA THZ CAI
 '''
 
-import visa
 import numpy
-import time as time
+import time
 import win32com.client
 
 class PPT(object):

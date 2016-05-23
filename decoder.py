@@ -22,7 +22,7 @@ def dec2bin(dec, rank):
     '''
     convert decimal to binary with given width
     '''
-    binary = binary_repr(int(dec), width=2**rank)
+    binary = binary_repr(int(dec), width=(2**rank)**2)
     return binary
 
 def hex2bin(hex, rank):
@@ -37,14 +37,14 @@ def dec2mask(dec,rank,**kw):
     translates a decimal representaion into a binary mask (numpy array) 
     '''
     binary = dec2bin(dec=dec,rank=rank)
-    return array([int(k) for k in binary ]).reshape((rank,rank),**kw)
+    return array([int(k) for k in binary ]).reshape((2**rank,2**rank),**kw)
 
 def hex2mask(hex,rank,**kw):
     '''
     translates a decimal representation into a binary mask (numpy array)
     '''
-    dec = int(hex, base =16)
-    return dec2mak(dec,rank,**kw)
+    dec = int(hex, base =0)
+    return dec2mask(dec,rank,**kw)
     
 def bin2dec(binary):
     '''

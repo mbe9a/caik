@@ -7,7 +7,7 @@ import win32com.client
 
 class PPT(object):
 
-	def __init__(self, name, kind = "hadamard", rank = 1):
+	def __init__(self, name, kind = 'hadamard', rank = 1):
 		accepted_kinds = {'hadamard', 'bar', 'raster'}
 
 		if kind in accepted_kinds:
@@ -15,7 +15,7 @@ class PPT(object):
 			self.kind = kind
 			self.rank = rank
 			self.Application = win32com.client.Dispatch("PowerPoint.Application")
-			self.Presentation = self.Application.Presentations.Open(FileName = self.name)
+			self.Presentation = self.Application.Presentations.Open(FileName = (str)self.name)
 			self.SS = self.Application.SlideShowWindows(1)
 			print "NOTE: Projector has been initialized."
 

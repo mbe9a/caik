@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw
 import subprocess
 import math
 import numpy as np
-import time as time
+import time
 import pylab
 import matplotlib.pyplot as plt
 from skrf.media import Freespace

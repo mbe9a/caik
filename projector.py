@@ -1,6 +1,7 @@
-#Michael Eller
-#Noah Sauber
-#23 July 2015
+'''
+Alex Arsenovic, Michael Eller, Noah Sauber
+UVA THZ CAI
+'''
 
 import visa
 import numpy
@@ -17,12 +18,12 @@ class PPT(object):
 			self.kind = kind
 			self.rank = rank
 			self.Application = win32com.client.Dispatch("PowerPoint.Application")
-			self.Presentation = self.Application.Presentations.Open(FileName= str(self.name))
+			self.Presentation = self.Application.Presentations.Open(FileName = str(self.name))
 			self.SS = self.Application.SlideShowWindows(1)
 			print "NOTE: Projector has been initialized."
 
 		else:
-			print "ERROR: Invalid projector kind"
+			raise ValueError('bad kind')
 
 	def run(self):
 	    for x in range (0, self.Presentation.Slides.Count - 1):

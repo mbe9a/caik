@@ -29,8 +29,8 @@ def hex2bin(hex, rank):
     '''
     convert hexadecimal to binary with given width
     '''
-    dec = int(hex, base=0)
-    binary = binary_repr(int(dec), width=(2**rank)**2)
+    dec = int(hex, base = 0)
+    binary = binary_repr(int(dec), width = (2**rank)**2)
     return binary
     
 # def dec2mask(dec,rank,**kw):
@@ -44,8 +44,8 @@ def hex2mask(hex,rank,**kw):
     '''
     translates a decimal representation into a binary mask (numpy array)
     '''
-    dec = int(hex, base =0)
-    binary = dec2bin(dec=dec,rank=rank)
+    dec = int(hex, base = 0)
+    binary = dec2bin(dec = dec,rank = rank)
     return array([int(k) for k in binary ]).reshape((2**rank,2**rank),**kw)
     
 # def bin2dec(binary):
@@ -58,7 +58,7 @@ def bin2hex(binary):
     '''
     convert binary to hexadecimal
     '''
-    return hex(int('0b'+''.join(binary),base=0))
+    return hex(int('0b'+''.join(binary),base = 0))
     
 # def mask2dec(mask):
 #     '''
@@ -75,7 +75,7 @@ def mask2hex(mask):
     return hex(bin2dec(flat))
 
 # creation of mask sets for a given rank
-def gen_had_masks(rank, invert=False):
+def gen_had_masks(rank, invert = False):
     '''
     generate a list  hadamard masks for a given rank 
     
@@ -115,7 +115,7 @@ def gen_masks(kind, rank, invert=False):
     generate set of masks of given `kind` and rank. possibly inverted
     '''
     kw =dict(rank=rank, invert=invert)
-    if kind ==hadamard:
+    if kind == 'hadamard':
         return gen_had_masks(**kw)
     elif kind == 'raster':
         return gen_raster_masks(**kw)
@@ -130,17 +130,17 @@ def gen_masks(kind, rank, invert=False):
 #     masks = gen_masks(kind=kind, rank=rank, invert=invert)
 #     return [mask2dec(k) for k in masks]
 
-def gen_hexs(kind, rank, invert=False):
+def gen_hexs(kind, rank, invert = False):
     '''
     generate decimal representation for a given kind of mask set and rank
 
     '''
-    masks = gen_masks(kind=kind, rank=rank, invert=invert)
+    masks = gen_masks(kind = kind, rank = rank, invert = invert)
     return [mask2hex(k) for k in masks]
 
 
 class Decoder(object):
-    def __init__(self,base_dir, cal=None, cal_each_mask=False):
+    def __init__(self, base_dir, cal=None, cal_each_mask=False):
         '''
         A Decoder for a Vector Coded Aperture Measurment System
         
@@ -164,15 +164,15 @@ class Decoder(object):
         self.cal = cal
         self.cal_each_mask = cal_each_mask
         # determine rank 
-        max_dec = max([int(d) for d in self.decs.keys()])
-        self.rank = int(sqrt(len('{0:b}'.format(max_dec))))
+        max_hex = max([int(d) for d in self.hexs.keys()])
+        self.rank = int(sqrt(len('{0:b}'.format(max_hex))))
         
-        self.frequency = rf.ran(str(self.decs.values()[0])).values()[0].frequency
+        self.frequency = rf.ran(str(self.hexs.values()[0])).values()[0].frequency
         
             
         
     @property
-    def decs(self):
+    def hexs(self):
         '''
         list of decimal values for each mask
         
@@ -182,16 +182,16 @@ class Decoder(object):
     
     
             
-    def pixel2decs(self, m, n, half_on_only=False):
+    def pixel2hexs(self, m, n, half_on_only = False):
         '''
         list of the masks which have a given pixel `on`.  
 
-        the masks are given in decimal representations
+        the masks are given in hexadecimal representations
         '''
-        out=[]
-        for d in self.decs.keys():
-            mask = dec2mask(d, rank=self.rank)
-            if mask[m,n] ==1:
+        out = []
+        for d in self.hexs.keys():
+            mask = hex2mask(d, rank = self.rank)
+            if mask[m,n] == 1:
                 # pixel is on
                 if half_on_only:
                     if sum(mask) == self.rank:
@@ -202,7 +202,7 @@ class Decoder(object):
     
     
         
-    def cal_of(self,dec):
+    def cal_of(self, hex_dec):
         '''
         Calibration for a given mask, or pixel
         '''
@@ -212,10 +212,10 @@ class Decoder(object):
         if self.cal is None:
             freq = self.frequency
             n = len(freq)
-            coefs ={'directivity':zeros(n),
+            coefs = {'directivity':zeros(n),
                     'source match': zeros(n),
                     'reflection tracking':ones(n)}
-            cal =OnePort.from_coefs(frequency=freq, coefs=coefs)
+            cal = OnePort.from_coefs(frequency = freq, coefs = coefs)
             return cal
             
         if not self.cal_each_mask:
@@ -226,64 +226,63 @@ class Decoder(object):
             cal = deepcopy(self.cal)
             ideals = cal.ideals
 
-            if isinstance(dec, tuple):
+            if isinstance(hex_dec, tuple):
                 # decode the measurements 
-                measured =[]
+                measured = []
                 for ideal in ideals:
-                    m = self.raw_ntwk_of(dec,ideal.name)
+                    m = self.raw_ntwk_of(hex_dec,ideal.name)
                     measured.append(m)
                 
             else:
-                measured = rf.ran(self.decs[dec]).values()
+                measured = rf.ran(self.hexs[hex_dec]).values()
             
-
             cal.measured, cal.ideals = rf.align_measured_ideals(measured,ideals)
-            cal.name = str(dec)
+            cal.name = str(hex_dec)
             return cal
 
-    def error_ntwk_of(self,dec):
+    def error_ntwk_of(self, hex_dec):
         '''
         error ntwk for a given mask, or pixel
         '''
-        if isinstance(dec, tuple):
-            ntwks = [self.error_ntwk_of(k) for k in self.pixel2decs(*dec)]
+        if isinstance(hex_dec, tuple):
+            ntwks = [self.error_ntwk_of(k) for k in self.pixel2hexs(*dec)]
             return rf.average(ntwks)
         
-        ntwk = self.cal_of(dec).error_ntwk
-        ntwk.name = dec
+        ntwk = self.cal_of(hex_dec).error_ntwk
+        ntwk.name = hex_dec
         return ntwk
     
-    def raw_ntwk_of(self,dec,name):
+    def raw_ntwk_of(self, hex_dec, name):
         '''
         raw ntwk for a given mask, or pixel
         '''
-        if isinstance(dec, tuple):
-            ntwks = [self.raw_ntwk_of(k,name) for k in self.pixel2decs(*dec)]
+        if isinstance(hex_dec, tuple):
+            ntwks = [self.raw_ntwk_of(k, name) for k in self.pixel2hexs(*hex_dec)]
             return rf.average(ntwks)
-        ntwk = rf.ran(str(self.decs[dec]), contains=name).values()[0]
+        ntwk = rf.ran(str(self.hexs[hex_dec]), contains = name).values()[0]
         
         return ntwk
         
-    def cor_ntwk_of(self,dec, name, loc='corrected'):
+    def cor_ntwk_of(self, hex_dec, name, loc = 'corrected'):
         '''
         corrected ntwk for a given mask, or pixel
         '''
-        if isinstance(dec, tuple):
+        if isinstance(hex_dec, tuple):
             if loc  == 'corrected':
                 # decode in corrected-space
-                ntwks = [self.cor_ntwk_of(k,name) for k in self.pixel2decs(*dec)]
+                ntwks = [self.cor_ntwk_of(k,name) for k in self.pixel2hexs(*hex_dec)]
                 return rf.average(ntwks)
-            elif loc =='measured':
+            elif loc == 'measured':
                 # decode in measured space
-                m = self.raw_ntwk_of(dec,name)
-                return self.cal_of(dec).apply_cal(m)
+                m = self.raw_ntwk_of(hex_dec,name)
+                return self.cal_of(hex_dec).apply_cal(m)
         
         # correct a measurement for a single mask
-        return self.cal_of(dec).apply_cal(self.raw_ntwk_of(dec,name))
+        return self.cal_of(hex_dec).apply_cal(self.raw_ntwk_of(hex_dec,name))
     
     
     
-    def cor_cube(self,name,attr='s_db'):
+    def cor_cube(self, name, attr = 's_db'):
         '''
         a corrected datacube
         
@@ -305,7 +304,7 @@ class Decoder(object):
         z = z.T.reshape(-1,rank,rank)
         return z
     
-    def interact_cor_cube(self,name,attr='s_db', clims=None):
+    def interact_cor_cube(self, name, attr='s_db', clims=None):
         '''
         an interactive image projection of the cor_cube
         '''
@@ -323,6 +322,6 @@ class Decoder(object):
             plt.colorbar()
             if clims is not None:
                 plt.clim(clims)
-        return interactive (func,n =(0,len(freq)) )
+        return interactive (func, n = (0,len(freq)))
 
 

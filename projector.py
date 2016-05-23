@@ -3,8 +3,6 @@ Alex Arsenovic, Michael Eller, Noah Sauber
 UVA THZ CAI
 '''
 
-import numpy
-import time
 import win32com.client
 
 class PPT(object):
@@ -17,7 +15,7 @@ class PPT(object):
 			self.kind = kind
 			self.rank = rank
 			self.Application = win32com.client.Dispatch("PowerPoint.Application")
-			self.Presentation = self.Application.Presentations.Open(FileName = str(self.name))
+			self.Presentation = self.Application.Presentations.Open(FileName = self.name)
 			self.SS = self.Application.SlideShowWindows(1)
 			print "NOTE: Projector has been initialized."
 

@@ -7890,7 +7890,8 @@ class Presentations(DispatchBaseClass):
 
 	# Result is of type Presentation
 	def Open(self, FileName=defaultNamedNotOptArg, ReadOnly=0, Untitled=0, WithWindow=-1):
-		ret = self._oleobj_.InvokeTypes(2005, LCID, 1, (13, 0), ((8, 1), (3, 49), (3, 49), (3, 49)),FileName, ReadOnly, Untitled, WithWindow)
+		ret = self._oleobj_.InvokeTypes(2005, LCID, 1, (13, 0), ((8, 1), (3, 49), (3, 49), (3, 49)),FileName
+			, ReadOnly, Untitled, WithWindow)
 		if ret is not None:
 			# See if this IUnknown is really an IDispatch
 			try:

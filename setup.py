@@ -1,3 +1,8 @@
+'''
+Alex Arsenovic, Michael Eller, Noah Sauber
+UVA THZ CAI
+'''
+
 #!/usr/bin/env python
 import os
 from setuptools import setup

@@ -1,3 +1,8 @@
+'''
+Alex Arsenovic, Michael Eller, Noah Sauber
+UVA THZ CAI
+'''
+
 import skrf as rf
 from skrf import micron
 from skrf.media import Freespace
@@ -11,7 +16,7 @@ import cai
 
 
 
-# conversion between masks representations: mask  and decimal 
+# conversion between masks representations: mask and decimal and hex if preferred
 # ( binary is an intermediary form).
 def dec2bin(dec, rank):
     '''
@@ -19,6 +24,13 @@ def dec2bin(dec, rank):
     '''
     binary = binary_repr(int(dec), width=rank**2)
     return binary
+
+def hex2bin(hex, rank):
+    '''
+    convert hexadecimal to binary with given width
+    '''
+    dec = int(hex, base=16)
+    return dec2bin(dec, rank)
     
 def dec2mask(dec,rank,**kw):
     '''
@@ -26,12 +38,25 @@ def dec2mask(dec,rank,**kw):
     '''
     binary = dec2bin(dec=dec,rank=rank)
     return array([int(k) for k in binary ]).reshape((rank,rank),**kw)
+
+def hex2mask(hex,rank,**kw):
+    '''
+    translates a decimal representation into a binary mask (numpy array)
+    '''
+    dec = int(hex, base =16)
+    return dec2mak(dec,rank,**kw)
     
 def bin2dec(binary):
     '''
     convert binary to decimal
     '''
-    return int('0b'+''.join(binary), base=0) 
+    return int('0b'+''.join(binary),base=0)
+
+def bin2hex(binary):
+    '''
+    convert binary to hexadecimal
+    '''
+    return hex(bin2dec(binary))
     
 def mask2dec(mask):
     '''
@@ -39,6 +64,12 @@ def mask2dec(mask):
     '''
     flat = mask.flatten().astype('str')
     return bin2dec(flat)
+
+def mask2hex(mask):
+    '''
+    translates a mask to its hexadecimal representation
+    '''
+    return hex(mask2dec(mask))
 
 # creation of mask sets for a given rank
 def gen_had_masks(rank, invert=False):
@@ -68,9 +99,9 @@ def gen_masks(kind, rank, invert=False):
     '''
     kw =dict(rank=rank, invert=invert)
     if kind ==hadamard:
-        return had_masks_from_rank(**kw)
+        return gen_had_masks(**kw)
     elif kind == 'raster':
-        return raster_masks_from_rank(**kw)
+        return gen_raster_masks(**kw)
     else:
         raise ValueError('bad kind')
     
@@ -79,9 +110,15 @@ def gen_decs(kind, rank, invert=False):
     generate decimal representations for a given kind of mask set and rank
     
     '''
-    masks= had_masks_from_rank(kind=kind, rank=rank, invert=invert)
+    masks = gen_masks(kind=kind, rank=rank, invert=invert)
     return [mask2dec(k) for k in masks]
 
+def gen_hexs(kind, rank, invert=False):
+    '''
+    generate decimal representation for a given kind of mask set and rank
+    '''
+    masks = gen_masks(kind=kind, rank=rank, invert=invert)
+    return [mask2hex(k) for k in masks]
 
 
 class Decoder(object):

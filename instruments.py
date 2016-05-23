@@ -1,6 +1,7 @@
-#Michael Eller
-#Noah Sauber
-#9 July 2015
+'''
+Alex Arsenovic, Michael Eller, Noah Sauber
+UVA THZ CAI
+'''
 
 import visa
 from skrf.vi.vna import ZVA40

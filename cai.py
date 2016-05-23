@@ -117,47 +117,47 @@ class CAI(object):
 		cal_q.plot_caled_ntwks(ls='', marker='.')
 		return cal_q
 
-	def take_image(self):
-		DIR = 'obj'
-		os.makedirs(DIR)
-		os.chdir(DIR)
-		self.esp.position = 0
-		white = (255, 255, 255)
-		hlist = self.matrixList
-		size = self.canvasSize
-		for i in range(0, len(hlist)):
-			image = Image.new("RGB", (size, size), white)
-			draw = ImageDraw.Draw(image)
-			matrix = hlist[i]
-			#start drawing!
-			drawH(matrix, size, 0, 0, 2, draw)
-			#start collecting data!
-			image.save("mask.png")
-			time.sleep(0.5)
-			del image
-			os.startfile('mask.png')
-			time.sleep(2)
-			#create files and save data!
-			os.makedirs(str(i))
-			os.chdir(str(i))
-			self.zva.write_data('object')
-			os.chdir("..")
-			os.system("taskkill /im microsoft.photos.exe /f")
-			time.sleep(1)
-		os.chdir('..')
+	# def take_image(self):
+	# 	DIR = 'obj'
+	# 	os.makedirs(DIR)
+	# 	os.chdir(DIR)
+	# 	self.esp.position = 0
+	# 	white = (255, 255, 255)
+	# 	hlist = self.matrixList
+	# 	size = self.canvasSize
+	# 	for i in range(0, len(hlist)):
+	# 		image = Image.new("RGB", (size, size), white)
+	# 		draw = ImageDraw.Draw(image)
+	# 		matrix = hlist[i]
+	# 		#start drawing!
+	# 		drawH(matrix, size, 0, 0, 2, draw)
+	# 		#start collecting data!
+	# 		image.save("mask.png")
+	# 		time.sleep(0.5)
+	# 		del image
+	# 		os.startfile('mask.png')
+	# 		time.sleep(2)
+	# 		#create files and save data!
+	# 		os.makedirs(str(i))
+	# 		os.chdir(str(i))
+	# 		self.zva.write_data('object')
+	# 		os.chdir("..")
+	# 		os.system("taskkill /im microsoft.photos.exe /f")
+	# 		time.sleep(1)
+	# 	os.chdir('..')
 
-	def rename_folders(self, base_dir):
-		matrixList = recursion_fix(self.dimension, self.matrixList)
-		os.chdir(base_dir)
-		for x in range(0, len(matrixList)):
-			os.rename(str(x), str(int(format2bn(matrixList[x]), 2)))
+	# def rename_folders(self, base_dir):
+	# 	matrixList = recursion_fix(self.dimension, self.matrixList)
+	# 	os.chdir(base_dir)
+	# 	for x in range(0, len(matrixList)):
+	# 		os.rename(str(x), str(int(format2bn(matrixList[x]), 2)))
 
-	def set_dim(self, dim):
-		self.dimension = dim
-		self.matrixList = createH(dim,'111-', [])
+	# def set_dim(self, dim):
+	# 	self.dimension = dim
+	# 	self.matrixList = createH(dim,'111-', [])
 
-	def set_canvas(self, c):
-		self.canvasSize = c
+	# def set_canvas(self, c):
+	# 	self.canvasSize = c
 
 	#resolution^2 is how many pixels
 	#step size is how much the stage moves

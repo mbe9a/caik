@@ -19,6 +19,6 @@ setup(
 	long_description=LONG_DESCRIPTION,
 	author='Michael Eller',
 	author_email='mbe9a@virginia.edu',
-	py_modules = ['caik', 'instruments', 'cai', 'decoder'],
+	py_modules = ['caik', 'instruments', 'cai', 'decoder','projector'],
 	#package_dir= {'','cat'},
 	)

@@ -7,7 +7,7 @@ import visa
 from skrf.vi.vna import ZVA40
 from skrf.vi.stages import ESP300
 import numpy
-import time as time
+import time
 
 class ZVA(ZVA40):
 	def __init__(self):

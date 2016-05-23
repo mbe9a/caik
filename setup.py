@@ -2,7 +2,7 @@
 import os
 from setuptools import setup
 
-VERSION = '1.2'
+VERSION = '1.3'
 LONG_DESCRIPTION = """
 		caik is a collection of python code to take and decode data in a coded aperture imaging project.
 """
@@ -14,6 +14,6 @@ setup(
 	long_description=LONG_DESCRIPTION,
 	author='Michael Eller',
 	author_email='mbe9a@virginia.edu',
-	py_modules = ['caik','matrixDecoder', 'instruments', 'cai'],
+	py_modules = ['caik', 'instruments', 'cai', 'decoder'],
 	#package_dir= {'','cat'},
 	)

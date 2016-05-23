@@ -83,7 +83,10 @@ def gen_had_masks(rank, invert=False):
     the masks returned are binary numpy.arrays's.
     there will be N=(2**rank)**2 masks. 
     '''
-    matrixList = cai.list2bn(rank, cai.createH(rank,'111-',[]))
+    if invert:
+        matrixList = cai.list2bn(rank, cai.inverse_ML(cai.createH(rank,'111-',[])))
+    else:
+        matrixList = cai.list2bn(rank, cai.createH(rank,'111-',[]))
     return array([[int(k) for k in matrix] for matrix in matrixList]).reshape(((2**rank)**2,(2**rank)**2))
 
     
@@ -95,10 +98,15 @@ def gen_raster_masks(rank, invert=False):
     there will be N=rank**2 masks. 
     '''
     length = (2**rank)**2
-    arr = array([[0 for x in range(0,length)] for y in range(0,length)])
+    if invert:
+        pixel = 0
+        arr = array([[1 for x in range(0,length)] for y in range(0,length)])
+    else:
+        pixel = 1
+        arr = array([[0 for x in range(0,length)] for y in range(0,length)])
     count = 0
     for mask in arr:
-        mask[count] = 1
+        mask[count] = pixel
         count += 1
     return arr
 
@@ -114,17 +122,18 @@ def gen_masks(kind, rank, invert=False):
     else:
         raise ValueError('bad kind')
     
-def gen_decs(kind, rank, invert=False):
-    '''
-    generate decimal representations for a given kind of mask set and rank
+# def gen_decs(kind, rank, invert=False):
+#     '''
+#     generate decimal representations for a given kind of mask set and rank
     
-    '''
-    masks = gen_masks(kind=kind, rank=rank, invert=invert)
-    return [mask2dec(k) for k in masks]
+#     '''
+#     masks = gen_masks(kind=kind, rank=rank, invert=invert)
+#     return [mask2dec(k) for k in masks]
 
 def gen_hexs(kind, rank, invert=False):
     '''
     generate decimal representation for a given kind of mask set and rank
+
     '''
     masks = gen_masks(kind=kind, rank=rank, invert=invert)
     return [mask2hex(k) for k in masks]

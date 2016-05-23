@@ -6,7 +6,6 @@ import skrf as rf
 from skrf import micron
 import os, os.path
 import instruments as dev
-import matrixDecoder as mm
 from PIL import Image, ImageDraw
 import subprocess
 import math
@@ -282,17 +281,17 @@ def format2bn(s):
 
 #take a list of 1 and - matrices and convert to binary
 def list2bn(dim, ml):
-	new_list = cai.recursion_fix(dim, ml)
+	new_list = recursion_fix(dim, ml)
 	bn = []
 	for x in range(0,len(ml)):
-		bn.append(cai.format2bn(new_list[x]))
+		bn.append(format2bn(new_list[x]))
 	return bn
 
 #form the inverse matrix list
 def inverse_ML(ml):
     inv = []
     for x in range(0,len(ml)):
-        inv.append(cai.inverse(ml[x]))
+        inv.append(inverse(ml[x]))
     return inv
 
 #rotating the h matrix to create the different combos 

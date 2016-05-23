@@ -7,7 +7,6 @@ from unipath import Path
 from matplotlib import pyplot as plt
 from pylab import * # this is sloppy
 from IPython.html.widgets import interactive
-import cai
 
 
 
@@ -49,9 +48,7 @@ def gen_had_masks(rank, invert=False):
     the masks returned are binary numpy.arrays's.
     there will be N=rank**2 masks. 
     '''
-    matrixList = cai.list2bn(rank, cai.createH(rank,'111-',[]))
-    return array([[int(k) for k in matrix] for matrix in matrixList]).reshape(((2**rank)**2,(2**rank)**2))
-
+    raise NotImplementedError()
     
 def gen_raster_masks(rank, invert=False):
     '''

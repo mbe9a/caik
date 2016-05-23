@@ -6,7 +6,6 @@ import skrf as rf
 from skrf import micron
 import os, os.path
 import instruments as dev
-import matrixDecoder as mm
 from PIL import Image, ImageDraw
 import subprocess
 import math
@@ -109,7 +108,7 @@ class CAI(object):
 		air = Freespace(frequency = freq, z0=50)
 		si = Freespace(frequency = freq , ep_r=11.7 , z0=50)
 		if load:
-			ideals = [ air.delay_short(k*delta,'um',name='ds,%i'%k)**si.delay_short(0,'um') for k in range(6)] + [air.match(name = 'pl')]
+			ideals = [ air.delay_short(k*delta,'um',name='ds,%i'%k) for k in range(6)] + [air.match(name = 'pl')]
 		else:
 			ideals = [ air.delay_short(k*delta,'um',name='ds,%i'%k) for k in range(6)] #**si.delay_short(350,'um')
 		cal_q = rf.OnePort(measured = meas, ideals = ideals, sloppy_input=True, is_reciprocal=False)
@@ -206,9 +205,10 @@ class CAI(object):
 			' V' + '\n' + 'Center: ' + '(' + str(CENTER_X) + ', ' + str(CENTER_Y) + ')' + '\n' + 
 			'Est. Radius: ' + str(radius) + ' mm')
 		plt.imshow(arr)
-		plt.colorbar().set_label(label = 'Volts')
+		plt.colorbar().set_label(label = 'Volts',rotation = 'horizontal')
 		plt.ylabel('Y (' + str(step) + ' mm)')
 		plt.xlabel('X (' + str(step) + ' mm)')
+		grid(0)
 		plt.title(name + '\n' + 'ZBD Voltage vs Position')
 		plt.text(0, 0, plotstr, fontsize=10, verticalalignment='top',bbox=dict(facecolor='white', alpha=1))
 		fig = plt.gcf()
@@ -278,6 +278,21 @@ def format2bn(s):
 		else:
 			string += '0'
 	return string
+
+#take a list of 1 and - matrices and convert to binary
+def list2bn(dim, ml):
+	new_list = cai.recursion_fix(dim, ml)
+	bn = []
+	for x in range(0,len(ml)):
+		bn.append(cai.format2bn(new_list[x]))
+	return bn
+
+#form the inverse matrix list
+def inverse_ML(ml):
+    inv = []
+    for x in range(0,len(ml)):
+        inv.append(cai.inverse(ml[x]))
+    return inv
 
 #rotating the h matrix to create the different combos 
 #'s' is the string to shift, 'n' is how many times

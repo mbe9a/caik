@@ -22,14 +22,14 @@ def dec2bin(dec, rank):
     '''
     convert decimal to binary with given width
     '''
-    binary = binary_repr(int(dec), width=rank**2)
+    binary = binary_repr(int(dec), width=2**rank)
     return binary
 
 def hex2bin(hex, rank):
     '''
     convert hexadecimal to binary with given width
     '''
-    dec = int(hex, base=16)
+    dec = int(hex, base=0)
     return dec2bin(dec, rank)
     
 def dec2mask(dec,rank,**kw):

@@ -18,58 +18,61 @@ import cai
 
 # conversion between masks representations: mask and decimal and hex if preferred
 # ( binary is an intermediary form).
-def dec2bin(dec, rank):
-    '''
-    convert decimal to binary with given width
-    '''
-    binary = binary_repr(int(dec), width=(2**rank)**2)
-    return binary
+# def dec2bin(dec, rank):
+#     '''
+#     convert decimal to binary with given width
+#     '''
+#     binary = binary_repr(int(dec), width=(2**rank)**2)
+#     return binary
 
 def hex2bin(hex, rank):
     '''
     convert hexadecimal to binary with given width
     '''
     dec = int(hex, base=0)
-    return dec2bin(dec, rank)
+    binary = binary_repr(int(dec), width=(2**rank)**2)
+    return binary
     
-def dec2mask(dec,rank,**kw):
-    '''
-    translates a decimal representaion into a binary mask (numpy array) 
-    '''
-    binary = dec2bin(dec=dec,rank=rank)
-    return array([int(k) for k in binary ]).reshape((2**rank,2**rank),**kw)
+# def dec2mask(dec,rank,**kw):
+#     '''
+#     translates a decimal representaion into a binary mask (numpy array) 
+#     '''
+#     binary = dec2bin(dec=dec,rank=rank)
+#     return array([int(k) for k in binary ]).reshape((2**rank,2**rank),**kw)
 
 def hex2mask(hex,rank,**kw):
     '''
     translates a decimal representation into a binary mask (numpy array)
     '''
     dec = int(hex, base =0)
-    return dec2mask(dec,rank,**kw)
+    binary = dec2bin(dec=dec,rank=rank)
+    return array([int(k) for k in binary ]).reshape((2**rank,2**rank),**kw)
     
-def bin2dec(binary):
-    '''
-    convert binary to decimal
-    '''
-    return int('0b'+''.join(binary),base=0)
+# def bin2dec(binary):
+#     '''
+#     convert binary to decimal
+#     '''
+#     return int('0b'+''.join(binary),base=0)
 
 def bin2hex(binary):
     '''
     convert binary to hexadecimal
     '''
-    return hex(bin2dec(binary))
+    return hex(int('0b'+''.join(binary),base=0))
     
-def mask2dec(mask):
-    '''
-    translates a mask to its decimal representation
-    '''
-    flat = mask.flatten().astype('str')
-    return bin2dec(flat)
+# def mask2dec(mask):
+#     '''
+#     translates a mask to its decimal representation
+#     '''
+#     flat = mask.flatten().astype('str')
+#     return bin2dec(flat)
 
 def mask2hex(mask):
     '''
     translates a mask to its hexadecimal representation
     '''
-    return hex(mask2dec(mask))
+    flat = mask.flatten().astype('str')
+    return hex(bin2dec(flat))
 
 # creation of mask sets for a given rank
 def gen_had_masks(rank, invert=False):
@@ -91,7 +94,13 @@ def gen_raster_masks(rank, invert=False):
     the masks returned are binary numpy.arrays's.
     there will be N=rank**2 masks. 
     '''
-    raise NotImplementedError()
+    length = (2**rank)**2
+    arr = array([[0 for x in range(0,length)] for y in range(0,length)])
+    count = 0
+    for mask in arr:
+        mask[count] = 1
+        count += 1
+    return arr
 
 def gen_masks(kind, rank, invert=False):
     '''
@@ -161,7 +170,6 @@ class Decoder(object):
         A dictionary with key:values as string:Path for each dec value
         '''
         return {str(k.name):k for k in self.base_dir.listdir()}
-    
     
     
             

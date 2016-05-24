@@ -2,6 +2,7 @@ cai.py
 caik.py
 decoder.py
 instruments.py
+projector.py
 setup.py
 caik.egg-info/PKG-INFO
 caik.egg-info/SOURCES.txt

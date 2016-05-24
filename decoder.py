@@ -144,21 +144,21 @@ class Decoder(object):
         '''
         A Decoder for a Vector Coded Aperture Measurment System
         
-        Parameters 
+        Parameters
         -----------
         base_dir : str, or `unipath.Path`
             the base directory which holds all data
             
         cal: `skrf.Calibration` object or None
-            the calibration template that is copied for each mask's 
-            calibration. The `measurements` attribute provided by 
+            the calibration template that is copied for each mask's
+            calibration. The `measurements` attribute provided by
             the calibraition template is never used, only the `ideals`.
             if None, then no calibration is performed
         
         cal_each_mask : bool
-            should a calibration be performed for each mask? If True, this 
-            requires that `cal` represents a calibration template, for 
-            which the `measurements` are provided for each mask dir 
+            should a calibration be performed for each mask? If True, this
+            requires that `cal` represents a calibration template, for
+            which the `measurements` are provided for each mask dir
         '''
         self.base_dir = Path( base_dir)
         self.cal = cal

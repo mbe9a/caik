@@ -25,11 +25,11 @@ import cai
 #     binary = binary_repr(int(dec), width=(2**rank)**2)
 #     return binary
 
-def hex2bin(hex, rank):
+def hex2bin(hex_dec, rank):
     '''
     convert hexadecimal to binary with given width
     '''
-    dec = int(hex, base = 0)
+    dec = int(hex_dec, base = 0)
     binary = binary_repr(int(dec), width = (2**rank)**2)
     return binary
     
@@ -40,12 +40,11 @@ def hex2bin(hex, rank):
 #     binary = dec2bin(dec=dec,rank=rank)
 #     return array([int(k) for k in binary ]).reshape((2**rank,2**rank),**kw)
 
-def hex2mask(hex,rank,**kw):
+def hex2mask(hex_dec,rank,**kw):
     '''
     translates a decimal representation into a binary mask (numpy array)
     '''
-    dec = int(hex, base = 0)
-    binary = dec2bin(dec = dec,rank = rank)
+    binary = hex2bin(hex_dec = hex_dec, rank = rank)
     return array([int(k) for k in binary ]).reshape((2**rank,2**rank),**kw)
     
 # def bin2dec(binary):
@@ -164,7 +163,7 @@ class Decoder(object):
         self.cal = cal
         self.cal_each_mask = cal_each_mask
         # determine rank 
-        max_hex = max([int(d) for d in self.hexs.keys()])
+        max_hex = max([int(d, base=0) for d in self.hexs.keys()])
         self.rank = int(sqrt(len('{0:b}'.format(max_hex))))
         
         self.frequency = rf.ran(str(self.hexs.values()[0])).values()[0].frequency

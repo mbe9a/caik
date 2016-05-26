@@ -13,6 +13,10 @@ from matplotlib import pyplot as plt
 from pylab import * # this is sloppy
 from IPython.html.widgets import interactive
 
+import os 
+from numpy.linalg import inv
+
+
 
 #import cai
 
@@ -123,13 +127,6 @@ def gen_masks(kind, rank, invert=False):
     else:
         raise ValueError('bad kind')
     
-# def gen_decs(kind, rank, invert=False):
-#     '''
-#     generate decimal representations for a given kind of mask set and rank
-    
-#     '''
-#     masks = gen_masks(kind=kind, rank=rank, invert=invert)
-#     return [mask2dec(k) for k in masks]
 
 def gen_hexs(kind, rank, invert = False):
     '''
@@ -138,6 +135,69 @@ def gen_hexs(kind, rank, invert = False):
     '''
     masks = gen_masks(kind = kind, rank = rank, invert = invert)
     return [mask2hex(k) for k in masks]
+
+
+
+
+
+def decode(dir_, f='635ghz', averaging=True):
+    '''
+    decode a hadamard-encoded dataset at a given frequency
+    
+    
+    Examples
+    ----------
+    f = '634ghz'
+    dir_= '../CAI/Bar Image/hadamard_2/Primary'
+
+    a = decode(dir_=dir_, f = f,averaging =True)
+    matshow(rf.complex_2_db(a))
+    cb = colorbar()
+    #clim(-26,-25)
+    grid(0)
+
+    '''
+    hexs = os.listdir(dir_)
+    
+    #determine resolution and rank 
+    res = int(sqrt(len(hexs)))
+    rank = int(log2(res))
+
+    # calculate inverse hadamard-delta transform`T`
+    # this can be pre-computed 
+    bins = [hex2bin(k,rank=rank) for k in hexs]
+    T = array([array(list(k), dtype=int) for k in bins])
+    T_inv = inv(T)
+
+    # create measurement frame `M` in hadamard space. 
+    M = []
+
+    for k in hexs:
+        b = array(list(hex2bin(k,rank=rank)),dtype=int)
+        n = rf.ran(dir_+'/'+k)
+        
+        if averaging:
+            n = rf.average(n.values())
+        else:
+            n = n[sorted(n.keys())[-1]]
+        
+        s = n[f].s[0,0,0] # pull out single complex number
+        m = s*b
+        M.append(m)
+
+    M= array(M)
+
+    # transform the frame `M` in hadamard space to 
+    # frame `A` in delta space
+    A = T_inv.dot(M)
+
+    # pixels lay along the diagonal. 
+    A_diag = array([A[k,k] for k in range(res**2)])
+
+    #reshape the diagonal matrix into the image
+    a = A_diag.reshape(res,res)
+    return a
+
 
 
 class Decoder(object):
@@ -324,5 +384,4 @@ class Decoder(object):
             if clims is not None:
                 plt.clim(clims)
         return interactive (func, n = (0,len(freq)))
-
 

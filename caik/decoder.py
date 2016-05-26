@@ -12,7 +12,9 @@ from unipath import Path
 from matplotlib import pyplot as plt
 from pylab import * # this is sloppy
 from IPython.html.widgets import interactive
-import cai
+
+
+#import cai
 
 
 

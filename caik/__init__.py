@@ -3,6 +3,7 @@ from six.moves import xrange
 
 __version__ = '1.0'
 
+'''
 from . import cai
 from . import matrixDecoder
 from . import instruments
@@ -11,3 +12,6 @@ from . import caik
 from .cai import *
 from .matrixDecoder import *
 from .instruments import *
+'''
+
+

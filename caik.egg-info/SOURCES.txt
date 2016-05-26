@@ -1,10 +1,6 @@
-cai.py
-caik.py
-decoder.py
-instruments.py
-projector.py
 setup.py
 caik.egg-info/PKG-INFO
 caik.egg-info/SOURCES.txt
 caik.egg-info/dependency_links.txt
+caik.egg-info/pbr.json
 caik.egg-info/top_level.txt

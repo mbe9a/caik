@@ -5,12 +5,12 @@ __version__ = '1.0'
 
 '''
 from . import cai
-from . import matrixDecoder
+from . import decoder
 from . import instruments
 from . import caik
 
 from .cai import *
-from .matrixDecoder import *
+from .decoder import *
 from .instruments import *
 '''
 

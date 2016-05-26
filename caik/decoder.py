@@ -20,12 +20,12 @@ from IPython.html.widgets import interactive
 
 # conversion between masks representations: mask and decimal and hex if preferred
 # ( binary is an intermediary form).
-# def dec2bin(dec, rank):
-#     '''
-#     convert decimal to binary with given width
-#     '''
-#     binary = binary_repr(int(dec), width=(2**rank)**2)
-#     return binary
+def dec2bin(dec, rank):
+    '''
+    convert decimal to binary with given width
+    '''
+    binary = binary_repr(int(dec), width=(2**rank)**2)
+    return binary
 
 def hex2bin(hex_dec, rank):
     '''
@@ -35,12 +35,12 @@ def hex2bin(hex_dec, rank):
     binary = binary_repr(int(dec), width = (2**rank)**2)
     return binary
     
-# def dec2mask(dec,rank,**kw):
-#     '''
-#     translates a decimal representaion into a binary mask (numpy array) 
-#     '''
-#     binary = dec2bin(dec=dec,rank=rank)
-#     return array([int(k) for k in binary ]).reshape((2**rank,2**rank),**kw)
+def dec2mask(dec,rank,**kw):
+    '''
+    translates a decimal representaion into a binary mask (numpy array) 
+    '''
+    binary = dec2bin(dec=dec,rank=rank)
+    return array([int(k) for k in binary ]).reshape((2**rank,2**rank),**kw)
 
 def hex2mask(hex_dec,rank,**kw):
     '''
@@ -49,11 +49,11 @@ def hex2mask(hex_dec,rank,**kw):
     binary = hex2bin(hex_dec = hex_dec, rank = rank)
     return array([int(k) for k in binary ]).reshape((2**rank,2**rank),**kw)
     
-# def bin2dec(binary):
-#     '''
-#     convert binary to decimal
-#     '''
-#     return int('0b'+''.join(binary),base=0)
+def bin2dec(binary):
+    '''
+    convert binary to decimal
+    '''
+    return int('0b'+''.join(binary),base=0)
 
 def bin2hex(binary):
     '''
@@ -61,12 +61,12 @@ def bin2hex(binary):
     '''
     return hex(int('0b'+''.join(binary),base = 0))
     
-# def mask2dec(mask):
-#     '''
-#     translates a mask to its decimal representation
-#     '''
-#     flat = mask.flatten().astype('str')
-#     return bin2dec(flat)
+def mask2dec(mask):
+    '''
+    translates a mask to its decimal representation
+    '''
+    flat = mask.flatten().astype('str')
+    return bin2dec(flat)
 
 def mask2hex(mask):
     '''

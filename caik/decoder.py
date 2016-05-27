@@ -256,7 +256,11 @@ class Decoder(object):
         '''
         freq= self.frequency
         f=(freq.start_scaled, freq.stop_scaled,freq.step_scaled)
-        func  = lambda f: self.image_at(f, attr=attr)
+        def func(f):
+            x = self.ntwk[str(f)].__getattribute__(attr)[0,...]
+            matshow(x)
+            colorbar()
+            grid(0)
         return interact(func,f=f )
         
         

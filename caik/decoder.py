@@ -18,7 +18,7 @@ from numpy.linalg import inv
 
 
 
-#import cai
+import cai
 
 
 
@@ -140,7 +140,7 @@ def gen_hexs(kind, rank, invert = False):
 
 
 
-def decode(dir_, f='635ghz', averaging=True):
+def decode(dir_, cal, f='635ghz', averaging=True):
     '''
     decode a hadamard-encoded dataset at a given frequency
     
@@ -180,12 +180,14 @@ def decode(dir_, f='635ghz', averaging=True):
             n = rf.average(n.values())
         else:
             n = n[sorted(n.keys())[-1]]
+
+        n = cal.apply_cal(n)
         
         s = n[f].s[0,0,0] # pull out single complex number
         m = s*b
         M.append(m)
 
-    M= array(M)
+    M = array(M)
 
     # transform the frame `M` in hadamard space to 
     # frame `A` in delta space

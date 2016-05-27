@@ -11,12 +11,12 @@ from copy import deepcopy
 from unipath import Path
 from matplotlib import pyplot as plt
 from pylab import * # this is sloppy
-from IPython.html.widgets import interactive
+from ipywidgets import  interact
 
 import os 
 from numpy.linalg import inv
-
-
+from xarray import DataArray
+from scipy.linalg import hadamard
 
 #import cai
 
@@ -115,17 +115,27 @@ def gen_raster_masks(rank, invert=False):
         count += 1
     return arr
 
+def gen_walsh_masks(rank,invert=False):
+    res = 2**rank
+    vol = (res)**2 # volume
+    
+    H = hadamard(vol)
+    H[H==-1]=0
+    if invert:
+        H = -H+1
+    return [H[:,k].reshape(res,res) for k in range(vol)]
+
 def gen_masks(kind, rank, invert=False):
     '''
     generate set of masks of given `kind` and rank. possibly inverted
     '''
     kw =dict(rank=rank, invert=invert)
-    if kind == 'hadamard':
-        return gen_had_masks(**kw)
-    elif kind == 'raster':
-        return gen_raster_masks(**kw)
-    else:
-        raise ValueError('bad kind')
+    
+    f_dict = {'hadamard':gen_had_masks,
+              'raster':gen_raster_masks,
+              'walsh':gen_walsh_masks}
+    return f_dict.get(kind,ValueError('bad kind') )(**kw)
+    
     
 
 def gen_hexs(kind, rank, invert = False):
@@ -139,6 +149,118 @@ def gen_hexs(kind, rank, invert = False):
 
 
 
+class Decoder(object):
+    def __init__(self, dir_, cal=None,  averaging=True):
+        '''
+        Simple Image Decoder 
+        
+        Examples
+        ----------
+        dir_= '../CAI/Bar Image/hadamard_2/Primary'
+        d = Decoder(dir_=dir_,averaging =True)
+        
+        
+        d.da # full data available as `xarray.DataArray`
+        d.image_at(634) # image at a given frequency
+        d.image_interact() # images at all frequencies
+        
+        '''
+        self.dir_=dir_
+        self.cal = cal
+        self.averaging =averaging
+        self._da = None
+    
+    
+    @property
+    def hexs(self):
+        return os.listdir(self.dir_)
+    
+    @property
+    def da(self):
+        '''
+        a xarray.DataArray object representing the entire data-set
+        '''
+        # return cached value if it exists
+        if self._da is not None:
+            return self._da
+            
+        hexs= self.hexs
+        
+        #determine resolution and rank 
+        res = int(sqrt(len(hexs)))
+        rank = int(log2(res))
+        
+        M=[] # will hold weighted masks
+         
+        for k in hexs:
+            n = rf.ran(self.dir_+'/'+k)
+            
+            if self.cal is not None:
+                n = self.cal.apply_cal_to_list(n)
+            
+            if self.averaging:
+                n = rf.average(n.values())
+            else:
+                n = n[sorted(n.keys())[-1]]
+            
+            s = n.s[:,0,0].reshape(-1,1,1) # pull out single complex number
+            
+            m = hex2mask(k,rank=rank) 
+            #copy mask allong frequency dimension
+            m = expand_dims(m,0).repeat(s.shape[0],0) 
+            m = m*s
+            M.append(m)
+
+        M= array(M)
+        n.frequency.unit='ghz'
+        da = DataArray(M, coords=[('mask_hex',hexs),
+                                  ('f_ghz',n.frequency.f_scaled),
+                                  ('row',range(res)),
+                                  ('col',range(res))])
+        
+        self._da = da # cache it
+        return da
+    
+    @property
+    def ntwk(self, *args, **kw):
+        '''
+        Network representation of this spectral image
+        
+        the ports are the pixels. nuff said
+        '''
+        s = self.da.mean(dim='mask_hex').data
+        return rf.Network(s=s,z0=1,frequency=self.frequency,*args, **kw)
+
+    @property
+    def frequency(self):
+        return rf.ran(self.dir_+'/'+self.hexs[0]).values()[0].frequency
+    
+    
+    def image_at(self, f,  attr='s_db'):
+        '''
+        Image at `f` for a given scalar `attr` of a skrf.Network
+        
+        Examples
+        ---------
+        d.image_at(634,'s_db')
+        '''
+        n = self.ntwk[str(f)]
+        x = n.__getattribute__(attr)[0,...]
+        matshow(x)
+        colorbar()
+        grid(0)
+    
+    def image_interact(self,  attr='s_db'):
+        '''
+        interactive repr of the sprectral image projection onto `attr`
+        '''
+        freq= self.frequency
+        f=(freq.start_scaled, freq.stop_scaled,freq.step_scaled)
+        func  = lambda f: self.image_at(f, attr=attr)
+        return interact(func,f=f )
+        
+        
+    
 # this is dum. but might be good for pixel cross-talk estimattion
 def decode_with_rotation(dir_, f='635ghz', cal=None,  averaging=True):
     '''

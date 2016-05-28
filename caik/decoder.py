@@ -176,6 +176,13 @@ class Decoder(object):
         return os.listdir(self.dir_)
     
     @property
+    def res(self):
+        return int(sqrt(len(self.hexs)))
+    @property
+    def rank(self):
+        return int(log2(self.res))
+    
+    @property
     def da(self):
         '''
         a xarray.DataArray object representing the entire data-set
@@ -185,10 +192,8 @@ class Decoder(object):
             return self._da
             
         hexs= self.hexs
-        
-        #determine resolution and rank 
-        res = int(sqrt(len(hexs)))
-        rank = int(log2(res))
+        res = self.res
+        rank = self.rank
         
         M=[] # will hold weighted masks
          
@@ -326,4 +331,4 @@ def decode_with_rotation(dir_, f='635ghz', cal=None,  averaging=True):
 
     #reshape the diagonal matrix into the image
     a = A_diag.reshape(res,res)
-    return a
+    return a,A

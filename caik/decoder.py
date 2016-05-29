@@ -79,72 +79,74 @@ def mask2hex(mask):
     flat = mask.flatten().astype('str')
     return hex(bin2dec(flat))
 
-# creation of mask sets for a given rank
-def gen_had_masks(rank, invert = False):
-    '''
-    generate a list  hadamard masks for a given rank 
-    
-    
-    the masks returned are binary numpy.arrays's.
-    there will be N=(2**rank)**2 masks. 
-    '''
-    if invert:
-        matrixList = cai.list2bn(rank, cai.inverse_ML(cai.createH(rank,'111-',[])))
-    else:
-        matrixList = cai.list2bn(rank, cai.createH(rank,'111-',[]))
-    return array([[int(k) for k in matrix] for matrix in matrixList]).reshape(((2**rank)**2,(2**rank)**2))
 
+class MaskSet(object):
+    def __init__(self, rank, invert=False):
+        self.rank =rank
+        self.invert=False
+        
+    @property
+    def masks(self):
+        raise NotImplementedError
     
-def gen_raster_masks(rank, invert=False):
+    @property
+    def hexs(self):
+        return [mask2hex(k) for k in masks]
+        
+        
+class Hadamard(MaskSet):
     '''
-    generate a list  raster masks for a given rank 
+    '''
+    @property
+    def masks(self):
+        rank = self.rank
+        if self.invert:
+            matrixList = cai.list2bn(rank, cai.inverse_ML(cai.createH(rank,'111-',[])))
+        else:
+            matrixList = cai.list2bn(rank, cai.createH(rank,'111-',[]))
+        return array([[int(k) for k in matrix] for matrix in matrixList]).reshape(((2**rank)**2,(2**rank)**2))
+
+
+class Raster(MaskSet):
+    '''
+     raster masks for a given rank 
     
     the masks returned are binary numpy.arrays's.
     there will be N=rank**2 masks. 
     '''
-    length = (2**rank)**2
-    if invert:
-        pixel = 0
-        arr = array([[1 for x in range(0,length)] for y in range(0,length)])
-    else:
-        pixel = 1
-        arr = array([[0 for x in range(0,length)] for y in range(0,length)])
-    count = 0
-    for mask in arr:
-        mask[count] = pixel
-        count += 1
-    return arr
+    @property
+    def masks(self):
+        rank = self.rank
+        length = (2**rank)**2
+        if self.invert:
+            pixel = 0
+            arr = array([[1 for x in range(0,length)] for y in range(0,length)])
+        else:
+            pixel = 1
+            arr = array([[0 for x in range(0,length)] for y in range(0,length)])
+        count = 0
+        for mask in arr:
+            mask[count] = pixel
+            count += 1
+        return arr
 
-def gen_walsh_masks(rank,invert=False):
-    res = 2**rank
-    vol = (res)**2 # volume
-    
-    H = hadamard(vol)
-    H[H==-1]=0
-    if invert:
-        H = -H+1
-    return [H[:,k].reshape(res,res) for k in range(vol)]
 
-def gen_masks(kind, rank, invert=False):
+class Walsh(MaskSet):
     '''
-    generate set of masks of given `kind` and rank. possibly inverted
     '''
-    kw =dict(rank=rank, invert=invert)
-    
-    f_dict = {'hadamard':gen_had_masks,
-              'raster':gen_raster_masks,
-              'walsh':gen_walsh_masks}
-    return f_dict.get(kind,ValueError('bad kind') )(**kw)
-    
-    
+    @property
+    def masks(self):
+        rank = self.rank
+        res = 2**rank
+        vol = (res)**2 # volume
+        
+        H = hadamard(vol)
+        H[H==-1]=0
+        if self.invert:
+            H = -H+1
+        return [H[:,k].reshape(res,res) for k in range(vol)]
 
-def gen_hexs(kind, rank, invert = False):
-    '''
-    generate decimal representation for a given kind of mask set and rank
 
-    '''
-    masks = gen_masks(kind = kind, rank = rank, invert = invert)
-    return [mask2hex(k) for k in masks]
 
 
 

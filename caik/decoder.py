@@ -15,6 +15,7 @@ from ipywidgets import  interact
 
 import os 
 from numpy.linalg import inv
+from numpy.random import randint
 from xarray import DataArray
 from scipy.linalg import hadamard
 
@@ -84,6 +85,14 @@ class MaskSet(object):
     def __init__(self, rank, invert=False):
         self.rank =rank
         self.invert=False
+    
+    @property
+    def res(self):
+        return 2**self.rank
+    
+    @property
+    def vector_dim(self):
+        return self.res**2
         
     @property
     def masks(self):
@@ -109,10 +118,7 @@ class Hadamard(MaskSet):
 
 class Raster(MaskSet):
     '''
-     raster masks for a given rank 
-    
-    the masks returned are binary numpy.arrays's.
-    there will be N=rank**2 masks. 
+    raster masks 
     '''
     @property
     def masks(self):
@@ -138,21 +144,28 @@ class Walsh(MaskSet):
     def masks(self):
         rank = self.rank
         res = 2**rank
-        vol = (res)**2 # volume
         
         H = hadamard(vol)
         H[H==-1]=0
         if self.invert:
             H = -H+1
-        return [H[:,k].reshape(res,res) for k in range(vol)]
+        return [H[:,k].reshape(res,res) for k in range(res**2)]
 
 
-
+class Random(MaskSet):
+    '''
+    '''
+    @property
+    def masks(self):
+        rank = self.rank
+        res = self.res
+        dim = self.vector_dim
+        return [randint(0,2,(dim).reshape(res,res) for k in range(res**2)]
 
 
 
 class Decoder(object):
-    def __init__(self, dir_, cal=None,  averaging=True):
+    def __init__(self, dir_, cal=None,  averaging=True,caching=True):
         '''
         Simple Image Decoder 
         
@@ -171,6 +184,7 @@ class Decoder(object):
         self.cal = cal
         self.averaging =averaging
         self._da = None
+        self.caching=caching
     
     
     @property
@@ -190,7 +204,7 @@ class Decoder(object):
         a xarray.DataArray object representing the entire data-set
         '''
         # return cached value if it exists
-        if self._da is not None:
+        if self._da is not None and caching:
             return self._da
             
         hexs= self.hexs
@@ -225,7 +239,8 @@ class Decoder(object):
                                   ('row',range(res)),
                                   ('col',range(res))])
         
-        self._da = da # cache it
+        if caching: 
+            self._da = da 
         return da
     
     @property

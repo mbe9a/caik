@@ -23,8 +23,7 @@ from scipy.linalg import hadamard
 
 
 
-# conversion between masks representations: mask and decimal and hex if preferred
-# ( binary is an intermediary form).
+# conversion between masks representations
 def dec2bin(dec, rank):
     '''
     convert decimal to binary with given width
@@ -80,7 +79,7 @@ def mask2hex(mask):
     flat = mask.flatten().astype('str')
     return hex(bin2dec(flat))
 
-
+## masks 
 class MaskSet(object):
     def __init__(self, rank, invert=False):
         self.rank =rank
@@ -102,7 +101,6 @@ class MaskSet(object):
     def hexs(self):
         return [mask2hex(k) for k in masks]
         
-        
 class Hadamard(MaskSet):
     '''
     '''
@@ -115,7 +113,6 @@ class Hadamard(MaskSet):
             matrixList = cai.list2bn(rank, cai.createH(rank,'111-',[]))
         return array([[int(k) for k in matrix] for matrix in matrixList]).reshape(((2**rank)**2,(2**rank)**2))
 
-
 class Raster(MaskSet):
     '''
     raster masks 
@@ -123,6 +120,7 @@ class Raster(MaskSet):
     @property
     def masks(self):
         rank = self.rank
+        
         length = (2**rank)**2
         if self.invert:
             pixel = 0
@@ -134,8 +132,9 @@ class Raster(MaskSet):
         for mask in arr:
             mask[count] = pixel
             count += 1
+        
+        arr = [ mask.reshape(self.res, self.res) for mask in arr]
         return arr
-
 
 class Walsh(MaskSet):
     '''
@@ -145,12 +144,11 @@ class Walsh(MaskSet):
         rank = self.rank
         res = 2**rank
         
-        H = hadamard(vol)
+        H = hadamard(res**2)
         H[H==-1]=0
         if self.invert:
             H = -H+1
         return [H[:,k].reshape(res,res) for k in range(res**2)]
-
 
 class Random(MaskSet):
     '''
@@ -160,10 +158,10 @@ class Random(MaskSet):
         rank = self.rank
         res = self.res
         dim = self.vector_dim
-        return [randint(0,2,(dim).reshape(res,res) for k in range(res**2)]
+        return [randint(0,2,(dim)).reshape(res,res) for k in range(res**2)]
 
 
-
+## decoder class
 class Decoder(object):
     def __init__(self, dir_, cal=None,  averaging=True,caching=True):
         '''

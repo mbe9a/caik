@@ -1,0 +1,9 @@
+ipython
+numpy
+scipy
+pandas
+matplotlib
+scikit-rf
+python-ivi
+pyvisa
+xarray

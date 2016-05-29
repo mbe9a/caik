@@ -12,7 +12,7 @@ __version__ = '1.0'
 from . import cai
 from . import decoder
 from . import instruments
-#from . import caik
+from . import caik
 
 from .cai import *
 from .decoder import *

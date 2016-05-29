@@ -1,6 +1,13 @@
 setup.py
+caik/MSO.py
+caik/MSPPT.py
+caik/__init__.py
+caik/cai.py
+caik/decoder.py
+caik/instruments.py
+caik/projector.py
 caik.egg-info/PKG-INFO
 caik.egg-info/SOURCES.txt
 caik.egg-info/dependency_links.txt
-caik.egg-info/pbr.json
+caik.egg-info/requires.txt
 caik.egg-info/top_level.txt

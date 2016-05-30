@@ -5,7 +5,7 @@ UVA THZ CAI
 
 import win32com.client
 from PIL import Image, ImageDraw
-import cai
+import encoder
 import os
 from enum import Enum
 import MSO, MSPPT
@@ -49,6 +49,22 @@ class hadamard(object):
 		self.scale = scale
 
 	@property
+	def hadamard_encoder(self):
+		return encoder.Hadamard(self.rank)
+	
+	@property
+	def raw_masks(self):
+		return self.hadamard_encoder.raw_masks
+	
+	@property
+	def primary_masks(self):
+		return self.hadamard_encoder.primary_masks
+	
+	@property
+	def inverse_masks(self):
+		return self.hadamard_encoder.inverse_masks
+	
+	@property
 	def path(self):
 		return self.base_dir + '\\Slide Shows\\hadamard\\hadamard_' + self.variant + '_' + str(self.rank) + '_' + str(self.scale) + '.pptx'
 	
@@ -80,9 +96,10 @@ class walsh(object):
 class PPT(object):
 	
 	'''
-	this is a class intended to serve as the link between cai and our current projection system --> powerpoint
+	this is a class intended to serve as the link between cai and our current projection system --> powerpoint.
 	code assumes there is a folder called 'Slide Shows' (in working directory) that contains
-	a folder for each type of presentation -- this can be modified and is not permanent
+	a folder for each type of presentation -- this can be modified and is not permanent.
+	the folders are also created on initializing a ppt_generator object
 
 	'''
 	def __init__(self, kind):
@@ -204,15 +221,16 @@ class ppt_generator(object):
 	#create hadamard set
 	def gen_hadamard_set(self, hadamard):
 		scale = hadamard.scale/100.
-		hm = cai.CAI(dimension = hadamard.rank)
+		raw_masks = hadamard.raw_masks
+		canvas_size = hadamard.hadamard_encoder.canvas_size
 
 		matrixList = []
-		for binary in cai.list2bn(hadamard.rank, hm.matrixList):
-			matrixList.append("{0:#0{1}x}".format(int('0b'+''.join(binary), base = 0), (2**hadamard.rank)**2/4 + 2))
+		for binary in hadamard.primary_masks:
+			matrixList.append(decoder.bin2hex(binary))
 
 		invML = []
-		for binary in cai.list2bn(hadamard.rank, cai.inverse_ML(hm.matrixList)):
-			invML.append("{0:#0{1}x}".format(int('0b'+''.join(binary), base = 0), (2**hadamard.rank)**2/4 + 2))
+		for binary in hadamard.inverse_masks:
+			invML.append(decoder.bin2hex(binary))
 
 		Application = win32com.client.Dispatch('PowerPoint.Application')
 		Presentation = Application.Presentations.Add()
@@ -238,17 +256,17 @@ class ppt_generator(object):
 			count = 2
 
 			if inverse or both:
-				for x in range ((len(hm.matrixList)) - 1, -1, -1):
+				for x in range ((len(raw_masks)) - 1, -1, -1):
 					#make a slide
 					slide = Presentation.Slides.Add(1, 12)
 					#black background
 					background = slide.ColorScheme.Colors(1).RGB = 0
 					#make base image
-					image = Image.new('RGB', (hm.canvasSize, hm.canvasSize), (255, 255, 255))
+					image = Image.new('RGB', (canvas_size, canvas_size), (255, 255, 255))
 					draw = ImageDraw.Draw(image)
 					#draw image
-					matrix = hm.matrixList[x]
-					cai.drawH(matrix, hm.canvasSize, 0, 0, 2, draw)
+					matrix = raw_masks[x]
+					encoder.draw_hadamard_mask(matrix, canvas_size, 0, 0, 2, draw)
 					#save image in pwd
 					image.save("mask.png")
 
@@ -265,11 +283,11 @@ class ppt_generator(object):
 				for x in range ((len(hm.matrixList)) - 1, -1, -1):
 					slide = Presentation.Slides.Add(1, 12)
 					background = slide.ColorScheme.Colors(1).RGB = 0
-					image = Image.new('RGB', (hm.canvasSize, hm.canvasSize), (255, 255, 255))
+					image = Image.new('RGB', (canvas_size, canvas_size), (255, 255, 255))
 					draw = ImageDraw.Draw(image)
 
-					matrix = cai.inverse(hm.matrixList[x])
-					cai.drawH(matrix, hm.canvasSize, 0, 0, 2, draw)
+					matrix = encoder.inverse(raw_masks[x])
+					encoder.draw_hadamard_mask(matrix, canvas_size, 0, 0, 2, draw)
 					image.save("mask.png")
 
 					writer.writerow({'slide': str(total - count + 2), 'mask in hex': matrixList[x]})
@@ -287,11 +305,11 @@ class ppt_generator(object):
 		Presentation.SaveAs(self.base_dir + '\\Slide Shows\\hadamard\\hadamard_' +  hadamard.variant + '_' + str(hadamard.rank) + '_' + str(hadamard.scale) + '\\hadamard_' + hadamard.variant + '_' + str(hadamard.rank) + '_' + str(hadamard.scale))
 		os.system("taskkill /im powerpnt.exe /f")
 
-		def gen_random_set(self, random):
-			raise NotImplementedError
+	def gen_random_set(self, random):
+		raise NotImplementedError
 
-		def gen_walsh_set(self, walsh):
-			raise NotImplementedError
+	def gen_walsh_set(self, walsh):
+		raise NotImplementedError
 
 
 #kill the ppt app

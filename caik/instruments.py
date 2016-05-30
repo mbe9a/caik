@@ -21,8 +21,8 @@ class ZVA(ZVA40):
 		ZVA40.__init__(self, address = 20)
 		#you will want the ZVA to be connected when you initialize
 		print "NOTE: ZVA40 has been connected."
-	def write_data(self,name, format = 'ma'):
 
+	def write_data(self,name, format = 'ma'):
 		self.get_network().write_touchstone(name, form = format)
 
 class ESP(object):

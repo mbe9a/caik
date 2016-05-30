@@ -19,7 +19,7 @@ from numpy.random import randint
 from xarray import DataArray
 from scipy.linalg import hadamard
 
-import cai
+import encoder
 
 
 
@@ -63,6 +63,7 @@ def bin2hex(binary):
     '''
     convert binary to hexadecimal
     '''
+    rank = log2(sqrt(len(binary)))
     return "{0:#0{1}x}".format(int('0b'+''.join(binary), base = 0), (2**rank)**2/4 + 2)
     
 def mask2dec(mask):
@@ -77,7 +78,7 @@ def mask2hex(mask):
     translates a mask to its hexadecimal representation
     '''
     flat = mask.flatten().astype('str')
-    return bin2hex(flat)
+    return bin2hex(flat, log2(sqrt(len(flat))))
 
 ## masks 
 class MaskSet(object):
@@ -103,15 +104,20 @@ class MaskSet(object):
         
 class Hadamard(MaskSet):
     '''
+    a little redundant with encoder, need to edit code structure/hierarchy
     '''
     @property
-    def masks(self):
-        rank = self.rank
-        if self.invert:
-            matrixList = cai.list2bn(rank, cai.inverse_ML(cai.createH(rank,'111-',[])))
-        else:
-            matrixList = cai.list2bn(rank, cai.createH(rank,'111-',[]))
-        return array([[int(k) for k in matrix] for matrix in matrixList]).reshape(((2**rank)**2,(2**rank)**2))
+    def hadamard_encoder(self):
+        return encoder.Hadamard(self.rank)
+
+    @property
+    def primary_masks(self):
+        return self.hadamard_encoder.primary_masks
+
+    @property
+    def inverse_masks(self):
+        return self.hadamard_encoder.inverse_masks
+    
 
 class Raster(MaskSet):
     '''

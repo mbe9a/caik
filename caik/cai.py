@@ -15,8 +15,7 @@ import time
 import pylab
 import matplotlib.pyplot as plt
 from skrf.media import Freespace
-import encoder
-import decoder
+import projector
 
 class CAI(object):
 	def __init__(self, start = False, resolution = 10, lia = 1):
@@ -204,6 +203,21 @@ class CAI(object):
 			for y in range(0, self.resolution):
 				if self.schottky[x][y] == maximum:
 					return (x, y)
+
+	def take_hadamard_image(self):
+		raise NotImplementedError
+
+	def take_bar_image(self):
+		raise NotImplementedError
+
+	def take_raster_image(self):
+		raise NotImplementedError
+
+	def take_walsh_image(self):
+		raise NotImplementedError
+
+	def take_random_image(self):
+		raise NotImplementedError
 
 def redraw(name, step, resolution):
 	os.chdir(name)

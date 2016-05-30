@@ -8,6 +8,7 @@ import numpy as np
 
 
 #class for creating hadamard encoded masks/images
+#this class is similar to the classes in projector and decoder... will inherit one parent class eventually
 class Hadamard(object):
 	def __init__(self, rank, canvas_size = 1024, seed = '111-'):
 		self.rank = rank

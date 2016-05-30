@@ -19,7 +19,7 @@ from numpy.random import randint
 from xarray import DataArray
 from scipy.linalg import hadamard
 
-#import cai
+import cai
 
 
 
@@ -63,7 +63,7 @@ def bin2hex(binary):
     '''
     convert binary to hexadecimal
     '''
-    return hex(int('0b'+''.join(binary),base = 0))
+    return "{0:#0{1}x}".format(int('0b'+''.join(binary), base = 0), (2**rank)**2/4 + 2)
     
 def mask2dec(mask):
     '''
@@ -77,7 +77,7 @@ def mask2hex(mask):
     translates a mask to its hexadecimal representation
     '''
     flat = mask.flatten().astype('str')
-    return hex(bin2dec(flat))
+    return bin2hex(flat)
 
 ## masks 
 class MaskSet(object):
@@ -124,10 +124,10 @@ class Raster(MaskSet):
         length = (2**rank)**2
         if self.invert:
             pixel = 0
-            arr = array([[1 for x in range(0,length)] for y in range(0,length)])
+            arr = array([[1 for x in range(0, length)] for y in range(0, length)])
         else:
             pixel = 1
-            arr = array([[0 for x in range(0,length)] for y in range(0,length)])
+            arr = array([[0 for x in range(0, length)] for y in range(0, length)])
         count = 0
         for mask in arr:
             mask[count] = pixel
@@ -178,7 +178,7 @@ class Decoder(object):
         d.image_interact() # images at all frequencies
         
         '''
-        self.dir_=dir_
+        self.dir_ = dir_
         self.cal = cal
         self.averaging =averaging
         self._da = None

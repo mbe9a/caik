@@ -7,14 +7,14 @@ import win32com.client
 from PIL import Image, ImageDraw
 import encoder
 import os
-from enum import Enum
 import MSO, MSPPT
 import csv
-from collections import namedtuple
 
 g = globals()
-for c in dir(MSO.constants):    g[c] = getattr(MSO.constants, c)
-for c in dir(MSPPT.constants):  g[c] = getattr(MSPPT.constants, c)
+for c in dir(MSO.constants):
+	g[c] = getattr(MSO.constants, c)
+for c in dir(MSPPT.constants):
+	g[c] = getattr(MSPPT.constants, c)
 
 #class to hold variables for a bar power point
 class bar(object):
@@ -22,6 +22,10 @@ class bar(object):
 		self.base_dir = base_dir
 		self.parts = parts
 		self.variant = variant
+
+	@property
+	def size(self):
+		return self.parts
 
 	@property
 	def path(self):
@@ -35,6 +39,10 @@ class raster(object):
 		self.x_parts = x_parts
 		self.y_parts = y_parts
 		self.scale = scale
+
+	@property
+	def size(self):
+		return self.x_parts*self.y_parts
 
 	@property
 	def path(self):
@@ -63,6 +71,10 @@ class hadamard(object):
 	@property
 	def inverse_masks(self):
 		return self.hadamard_encoder.inverse_masks
+
+	@property
+	def size(self):
+		return (2**self.rank)**2
 	
 	@property
 	def path(self):
@@ -77,6 +89,10 @@ class random(object):
 		self.scale = scale
 
 	@property
+	def size(self):
+		return self.rsolution**2
+
+	@property
 	def path(self):
 		return self.base_dir + '\\Slide Shows\\random\\random_' + self.variant + '_' + str(self.res) + '_' + str(self.scale) + '.pptx'
 	
@@ -87,6 +103,10 @@ class walsh(object):
 		self.variant = variant
 		self.rank = rank
 		self.scale = scale
+
+	@property
+	def size(self):
+		return (2**self.rank)**2
 
 	@property
 	def path(self):
@@ -163,21 +183,21 @@ class ppt_generator(object):
 		primary = (bar.variant == 'primary')
 		#make the slides --> slides are created in reverse order, so the loop runs backwards
 		if inverse or both:
-			for x in range(bar.parts - 1, -1,-1):
+			for x in range(bar.parts - 1, -1, -1):
 				#make a slide
 				slide = Presentation.Slides.Add(1, 12)
 				#black background
-				background = slide.ColorScheme.Colors(1).RGB = rgb(255,255,255)
+				background = slide.ColorScheme.Colors(1).RGB = rgb(255, 255, 255)
 				bar = slide.Shapes.AddShape(msoShapeRectangle,x*inc,0,inc,height)
 				bar.Fill.ForeColor.RGB = 0
 		if primary or both:
-			for x in range(bar.parts - 1, -1,-1):
+			for x in range(bar.parts - 1, -1, -1):
 				#make a slide
 				slide = Presentation.Slides.Add(1, 12)
 				#black background
 				background = slide.ColorScheme.Colors(1).RGB = 0
 				bar = slide.Shapes.AddShape(msoShapeRectangle,x*inc,0,inc,height)
-				bar.Fill.ForeColor.RGB = rgb(255,255,255)
+				bar.Fill.ForeColor.RGB = rgb(255, 255, 255)
 		#make last (first) slide
 		slide = Presentation.Slides.Add(1, 12)
 		#black background

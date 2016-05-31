@@ -15,7 +15,9 @@ import time
 import pylab
 import matplotlib.pyplot as plt
 from skrf.media import Freespace
+
 import projector
+import decoder
 
 class CAI(object):
 	def __init__(self, start = False, resolution = 10, lia = 1):
@@ -204,8 +206,20 @@ class CAI(object):
 				if self.schottky[x][y] == maximum:
 					return (x, y)
 
-	def take_hadamard_image(self):
-		raise NotImplementedError
+	#routine to take hadamard image
+	def take_hadamard_image(self, hadamard, delay = 1, duty_cycle = False, measurements = 1, averaging_delay = 0):
+		#retrieve/start slide show
+		ppt = projector.PPT(hadamard)
+		ppt.start_pres()
+
+		#
+		for x in range (0, hadamard.size):
+			ppt.show_slide(x + 2)
+			time.sleep(delay)
+			for y in range (0, measurements):
+				self.zva.get_network(name = hadamard.primary_masks[x] + '_' + str(k) + '.s1p')
+
+
 
 	def take_bar_image(self):
 		raise NotImplementedError

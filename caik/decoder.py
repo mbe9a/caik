@@ -226,11 +226,11 @@ class Decoder(object):
             else:
                 n = n[sorted(n.keys())[-1]]
             
-            s = n.s[:,0,0].reshape(-1,1,1) # pull out single complex number
+            s = n.s[:,0,0].reshape(-1, 1, 1) # pull out single complex number
             
             m = hex2mask(k,rank=rank) 
             #copy mask allong frequency dimension
-            m = expand_dims(m,0).repeat(s.shape[0],0) 
+            m = expand_dims(m, 0).repeat(s.shape[0], 0) 
             m = m*s
             M.append(m)
 
@@ -241,7 +241,7 @@ class Decoder(object):
                                   ('row',range(res)),
                                   ('col',range(res))])
         
-        if caching: 
+        if self.caching: 
             self._da = da 
         return da
     
@@ -252,15 +252,15 @@ class Decoder(object):
         
         the ports are the pixels. nuff said
         '''
-        s = self.da.mean(dim='mask_hex').data
-        return rf.Network(s=s,z0=1,frequency=self.frequency,*args, **kw)
+        s = self.da.mean(dim = 'mask_hex').data
+        return rf.Network(s = s, z0 = 1, frequency = self.frequency, *args, **kw)
 
     @property
     def frequency(self):
-        return rf.ran(self.dir_+'/'+self.hexs[0]).values()[0].frequency
+        return rf.ran(self.dir_ + '/' + self.hexs[0]).values()[0].frequency
     
     
-    def image_at(self, f,  attr='s_db'):
+    def image_at(self, f,  attr = 's_db'):
         '''
         Image at `f` for a given scalar `attr` of a skrf.Network
         
@@ -274,7 +274,7 @@ class Decoder(object):
         colorbar()
         grid(0)
     
-    def image_interact(self,  attr='s_db'):
+    def image_interact(self,  attr = 's_db'):
         '''
         interactive repr of the sprectral image projection onto `attr`
         '''

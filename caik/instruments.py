@@ -20,7 +20,7 @@ class ZVA(ZVA40):
 		'''
 		ZVA40.__init__(self, address = 20)
 		#you will want the ZVA to be connected when you initialize
-		print "NOTE: ZVA40 has been connected."
+		#print "NOTE: ZVA40 has been connected."
 
 	def write_data(self,name, format = 'ma'):
 		self.get_network().write_touchstone(name, form = format)
@@ -39,7 +39,7 @@ class ESP(object):
 		#del self.inst.timeout
 		self.current_axis = 1
 		#ESP300.__init__(self, address = 1, current_axis = 1, always_wait_for_stop=True, delay = 0.1)
-		print "NOTE: ESP Motor Driver has been connected."
+		#print "NOTE: ESP Motor Driver has been connected."
 
 	@property
 	def position(self):
@@ -57,7 +57,7 @@ class LIA5209(object):
 		Lock-In Amplifier Model 5209
 		'''
 		self.inst = visa.ResourceManager().open_resource('GPIB0::6::INSTR')
-		print "NOTE: LIA5209 has been connected."
+		#print "NOTE: LIA5209 has been connected."
 
 	def get_output(self):
 		return self.inst.ask('OUT')
@@ -80,7 +80,7 @@ class LIA5209(object):
 class LIASR530(object):
 	def __init__(self):
 		self.inst = visa.ResourceManager().open_resource('GPIB0::23::INSTR')
-		print "NOTE: SR530 has been connected."
+		#print "NOTE: SR530 has been connected."
 
 	def get_output(self):
 		return self.inst.ask('Q1')
@@ -91,7 +91,7 @@ class KEITHLEY(object):
 		Class to interface with the Keithley 2000 Multimeter
 		'''
 		self.inst = visa.ResourceManager().open_resource('GPIB0::8::INSTR')
-		print "NOTE: Keithley Multimeter has been connected."
+		#print "NOTE: Keithley Multimeter has been connected."
 
 	def get_output(self):
 		return self.inst.ask('READ?')

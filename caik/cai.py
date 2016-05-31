@@ -20,7 +20,7 @@ import projector
 import decoder
 
 class CAI(object):
-	def __init__(self, start = False, resolution = 10, lia = 1):
+	def __init__(self, base_dir = os.getcwd(), start = False, resolution = 10, lia = 1):
 		'''
 		A class to perform data collection and image creation
 
@@ -31,6 +31,7 @@ class CAI(object):
 
 		canvasSize: size of the mask image
 		'''
+		self.base_dir = base_dir
 		self.xpos = 0
 		self.resolution = resolution
 		self.schottky = [[0 for x in range(self.resolution)] for x in range(self.resolution)]
@@ -45,6 +46,16 @@ class CAI(object):
 
 		else:
 			print "NOTE: GPIB instuments have not been initialized."
+
+		if not os.path.exists('Data'):
+			os.mkdir('Data')
+			os.chdir('Data')
+			os.mkdir('hadamard')
+			os.mkdir('raster')
+			os.mkdir('bar')
+			os.mkdir('walsh')
+			os.mkdir('random')
+			os.chdir('..')
 
 	def start_esp(self):
 		self.esp = dev.ESP()
@@ -212,14 +223,37 @@ class CAI(object):
 		ppt = projector.PPT(hadamard)
 		ppt.start_pres()
 
-		#
-		for x in range (0, hadamard.size):
-			ppt.show_slide(x + 2)
-			time.sleep(delay)
-			for y in range (0, measurements):
-				self.zva.get_network(name = hadamard.primary_masks[x] + '_' + str(k) + '.s1p')
+		directory = 'Data\\hadamard\\' + hadamard.name + '\\primary'
+		if not os.path.exists(directory):
+			os.mkdir(directory)
 
+		#take primary data
+		if hadamard.variant == 'primary' or hadmard.variant == 'both'
+			for x in range (0, hadamard.size):
+				ppt.show_slide(x + 2)
+				time.sleep(delay)
+				os.mkdir('slide_' + str(x + 2))
+				for y in range (0, measurements):
+					self.zva.get_network(name = 'measurement_' + str(y) + '.s1p')
+					self.zva.write_touchstone(dir = directory + '\\')
+					time.sleep(averaging_delay)
 
+		directory = 'Data\\hadamard\\' + hadamard.name + '\\inverse'
+		if not os.path.exists(directory):
+			os.mkdir(directory)
+
+		#take inverse data
+		if hadamard.variant == 'inverse' or hadamard.variant == 'both':
+			for x in range (0, hadamard.size):
+				ppt.show_slide(hadamard.size + x + 2)
+				time.sleep(delay)
+				os.mkdir('slide_' + str(hadamard.size + x + 2))
+				for y in range (0, measurements):
+					self.zva.get_network(name = 'measurement_' + str(y) + '.s1p')
+					self.zva.write_touchstone(dir = directory + '\\')
+					time.sleep(averaging_delay)
+
+		projector.kill_pptx()
 
 	def take_bar_image(self):
 		raise NotImplementedError

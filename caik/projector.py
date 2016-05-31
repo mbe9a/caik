@@ -28,8 +28,16 @@ class bar(object):
 		return self.parts
 
 	@property
+	def name(self):
+		return 'bar_' + self.variant + '_' + str(self.parts)
+
+	@property
+	def directory(self):
+		return self.base_dir + '\\Slide Shows\\bar'
+
+	@property
 	def path(self):
-		return self.base_dir + '\\SlideShows\\bar\\bar_' + self.variant + '_' + str(self.parts) + '.pptx'
+		return self.directory + '\\' + self.name
 	
 #class to hold variables for a raster power point
 class raster(object):
@@ -45,8 +53,16 @@ class raster(object):
 		return self.x_parts*self.y_parts
 
 	@property
+	def name(self):
+		return 'raster_' + self.variant + '_' + str(self.x_parts) + '_' + str(self.y_parts) + '_' + str(self.scale)
+
+	@property
+	def directory(self):
+		return self.base_dir + '\\Slide Shows\\raster'
+
+	@property
 	def path(self):
-		return self.base_dir + '\\SlideShows\\raster\\raster_' + self.variant + '_' + str(self.x_parts) + '_' + str(self.y_parts) + '_' + str(self.scale) + '.pptx'
+		return self.directory + '\\' + self.name
 	
 #class to hold variables for a hadamard power point
 class hadamard(object):
@@ -75,10 +91,18 @@ class hadamard(object):
 	@property
 	def size(self):
 		return (2**self.rank)**2
+
+	@property
+	def name(self):
+		return 'hadamard_' + self.variant + '_' + str(self.rank) + '_' + str(self.scale)
+		
+	@property
+	def directory(self):
+		return self.base_dir + '\\Slide Shows\\hadamard\\' + name
 	
 	@property
 	def path(self):
-		return self.base_dir + '\\Slide Shows\\hadamard\\hadamard_' + self.variant + '_' + str(self.rank) + '_' + str(self.scale) + '\\hadamard_' + self.variant + '_' + str(self.rank) + '_' + str(self.scale) + '.pptx'
+		return self.directory + '\\' + name
 	
 #class to hold variables for a random resolution/pattern power point
 class random(object):
@@ -90,11 +114,19 @@ class random(object):
 
 	@property
 	def size(self):
-		return self.rsolution**2
+		return self.resolution**2
 
 	@property
+	def name(self):
+		return 'random_' + self.variant + '_' + str(self.res) + '_' + str(self.scale)
+	
+	@property
+	def directory(self):
+		return self.base_dir + '\\Slide Shows\\random'
+	
+	@property
 	def path(self):
-		return self.base_dir + '\\Slide Shows\\random\\random_' + self.variant + '_' + str(self.res) + '_' + str(self.scale) + '.pptx'
+		return self.directory + '\\' + name
 	
 #class to hold variables for a walsh power point
 class walsh(object):
@@ -109,10 +141,17 @@ class walsh(object):
 		return (2**self.rank)**2
 
 	@property
-	def path(self):
-		return self.base_dir + '\\Slide Shows\\walsh\\walsh_' + self.variant + '_' + str(self.rank) + '.pptx'
+	def name(self):
+		return 'walsh_' + self.variant + '_' + str(self.rank)
 	
+	@property
+	def directory(self):
+		return self.base_dir + '\\Slide Shows\\walsh'
 
+	@property
+	def path(self):
+		return self.directory + '\\' + name
+	
 class PPT(object):
 	
 	'''
@@ -128,7 +167,7 @@ class PPT(object):
 	#opens the given pptx and starts the slide show
 	def start_pres(self):
 		Application = win32com.client.Dispatch("Powerpoint.Application")
-		Presentation = Application.Presentations.Open(FileName = self.kind.path)
+		Presentation = Application.Presentations.Open(FileName = self.kind.path  + '.pptx')
 		Presentation.SlideShowSettings.Run()
 		self.SS = Application.SlideShowWindows(1)
 		self.SS.View.First()

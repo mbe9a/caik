@@ -21,14 +21,12 @@ from scipy.linalg import hadamard
 
 import encoder
 
-
-
 # conversion between masks representations
 def dec2bin(dec, rank):
     '''
     convert decimal to binary with given width
     '''
-    binary = binary_repr(int(dec), width=(2**rank)**2)
+    binary = binary_repr(int(dec), width = (2**rank)**2)
     return binary
 
 def hex2bin(hex_dec, rank):
@@ -63,7 +61,7 @@ def bin2hex(binary):
     '''
     convert binary to hexadecimal
     '''
-    rank = log2(sqrt(len(binary)))
+    rank = int(log2(sqrt(len(binary))))
     return "{0:#0{1}x}".format(int('0b'+''.join(binary), base = 0), (2**rank)**2/4 + 2)
     
 def mask2dec(mask):
@@ -82,7 +80,7 @@ def mask2hex(mask):
 
 ## masks 
 class MaskSet(object):
-    def __init__(self, rank, invert=False):
+    def __init__(self, rank, invert = False):
         self.rank =rank
         self.invert=False
     
@@ -169,7 +167,7 @@ class Random(MaskSet):
 
 ## decoder class
 class Decoder(object):
-    def __init__(self, dir_, cal=None,  averaging=True,caching=True):
+    def __init__(self, dir_, cal = None,  averaging = True, caching = True):
         '''
         Simple Image Decoder 
         
@@ -186,9 +184,9 @@ class Decoder(object):
         '''
         self.dir_ = dir_
         self.cal = cal
-        self.averaging =averaging
+        self.averaging = averaging
         self._da = None
-        self.caching=caching
+        self.caching = caching
     
     
     @property
@@ -211,11 +209,11 @@ class Decoder(object):
         if self._da is not None and caching:
             return self._da
             
-        hexs= self.hexs
+        hexs = self.hexs
         res = self.res
         rank = self.rank
         
-        M=[] # will hold weighted masks
+        M = [] # will hold weighted masks
          
         for k in hexs:
             n = rf.ran(self.dir_+'/'+k)
@@ -236,9 +234,9 @@ class Decoder(object):
             m = m*s
             M.append(m)
 
-        M= array(M)
-        n.frequency.unit='ghz'
-        da = DataArray(M, coords=[('mask_hex',hexs),
+        M = array(M)
+        n.frequency.unit = 'ghz'
+        da = DataArray(M, coords = [('mask_hex',hexs),
                                   ('f_ghz',n.frequency.f_scaled),
                                   ('row',range(res)),
                                   ('col',range(res))])
@@ -280,19 +278,19 @@ class Decoder(object):
         '''
         interactive repr of the sprectral image projection onto `attr`
         '''
-        freq= self.frequency
-        f=(freq.start_scaled, freq.stop_scaled,freq.step_scaled)
+        freq = self.frequency
+        f = (freq.start_scaled, freq.stop_scaled,freq.step_scaled)
         def func(f):
             x = self.ntwk[str(f)].__getattribute__(attr)[0,...]
             matshow(x)
             colorbar()
             grid(0)
-        return interact(func,f=f )
+        return interact(func, f = f )
         
         
     
 # this is dum. but might be good for pixel cross-talk estimattion
-def decode_with_rotation(dir_, f='634ghz', cal=None,  averaging=True):
+def decode_with_rotation(dir_, f = '634ghz', cal = None,  averaging = True):
     '''
     decode a hadamard-encoded dataset at a given frequency
     
@@ -317,15 +315,15 @@ def decode_with_rotation(dir_, f='634ghz', cal=None,  averaging=True):
 
     # calculate inverse hadamard-delta transform`T`
     # this can be pre-computed 
-    bins = [hex2bin(k,rank=rank) for k in hexs]
-    T = array([array(list(k), dtype=int) for k in bins])
+    bins = [hex2bin(k,rank = rank) for k in hexs]
+    T = array([array(list(k), dtype = int) for k in bins])
     T_inv = inv(T)
 
     # create measurement frame `M` in hadamard space. 
     M = []
 
     for k in hexs:
-        b = array(list(hex2bin(k,rank=rank)),dtype=int)
+        b = array(list(hex2bin(k,rank = rank)), dtype = int)
         n = rf.ran(dir_+'/'+k)
         
         if cal is not None:
@@ -341,7 +339,7 @@ def decode_with_rotation(dir_, f='634ghz', cal=None,  averaging=True):
         m = s*b
         M.append(m)
 
-    M= array(M)
+    M = array(M)
 
     # transform the frame `M` in hadamard space to 
     # frame `A` in delta space

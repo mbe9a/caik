@@ -66,7 +66,7 @@ class hadamard(object):
 	
 	@property
 	def path(self):
-		return self.base_dir + '\\Slide Shows\\hadamard\\hadamard_' + self.variant + '_' + str(self.rank) + '_' + str(self.scale) + '.pptx'
+		return self.base_dir + '\\Slide Shows\\hadamard\\hadamard_' + self.variant + '_' + str(self.rank) + '_' + str(self.scale) + '\\hadamard_' + self.variant + '_' + str(self.rank) + '_' + str(self.scale) + '.pptx'
 	
 #class to hold variables for a random resolution/pattern power point
 class random(object):
@@ -313,7 +313,7 @@ class ppt_generator(object):
 
 
 #kill the ppt app
-def kill_pptx(void):
+def kill_pptx():
 	os.system('taskkill /im powerpnt.exe /f')
 
 #calculate rgb values

@@ -3,18 +3,18 @@ Alex Arsenovic, Michael Eller, Noah Sauber
 UVA THZ CAI
 '''
 
-import win32com.client
+#import win32com.client
 from PIL import Image, ImageDraw
 import encoder
 import os
-import MSO, MSPPT
+#import MSO, MSPPT
 import csv
 
-g = globals()
-for c in dir(MSO.constants):
-	g[c] = getattr(MSO.constants, c)
-for c in dir(MSPPT.constants):
-	g[c] = getattr(MSPPT.constants, c)
+# g = globals()
+# for c in dir(MSO.constants):
+# 	g[c] = getattr(MSO.constants, c)
+# for c in dir(MSPPT.constants):
+# 	g[c] = getattr(MSPPT.constants, c)
 
 #class to hold variables for a bar power point
 class bar(object):
@@ -33,11 +33,11 @@ class bar(object):
 
 	@property
 	def directory(self):
-		return self.base_dir + '\\Slide Shows\\bar'
+		return self.base_dir + '/Slide Shows/bar'
 
 	@property
 	def path(self):
-		return self.directory + '\\' + self.name
+		return self.directory + '/' + self.name
 	
 #class to hold variables for a raster power point
 class raster(object):
@@ -58,11 +58,11 @@ class raster(object):
 
 	@property
 	def directory(self):
-		return self.base_dir + '\\Slide Shows\\raster'
+		return self.base_dir + '/Slide Shows/raster'
 
 	@property
 	def path(self):
-		return self.directory + '\\' + self.name
+		return self.directory + '/' + self.name
 	
 #class to hold variables for a hadamard power point
 class hadamard(object):
@@ -98,11 +98,11 @@ class hadamard(object):
 		
 	@property
 	def directory(self):
-		return self.base_dir + '\\Slide Shows\\hadamard\\' + self.name
+		return self.base_dir + '/Slide Shows/hadamard/' + self.name
 	
 	@property
 	def path(self):
-		return self.directory + '\\' + self.name
+		return self.directory + '/' + self.name
 	
 #class to hold variables for a random resolution/pattern power point
 class random(object):
@@ -122,11 +122,11 @@ class random(object):
 	
 	@property
 	def directory(self):
-		return self.base_dir + '\\Slide Shows\\random'
+		return self.base_dir + '/Slide Shows/random'
 	
 	@property
 	def path(self):
-		return self.directory + '\\' + self.name
+		return self.directory + '/' + self.name
 	
 #class to hold variables for a walsh power point
 class walsh(object):
@@ -146,11 +146,11 @@ class walsh(object):
 	
 	@property
 	def directory(self):
-		return self.base_dir + '\\Slide Shows\\walsh'
+		return self.base_dir + '/Slide Shows/walsh'
 
 	@property
 	def path(self):
-		return self.directory + '\\' + self.name
+		return self.directory + '/' + self.name
 	
 class PPT(object):
 	
@@ -163,6 +163,15 @@ class PPT(object):
 	'''
 	def __init__(self, kind):
 		self.kind = kind
+
+	@property
+	def map(self):
+		m = {}
+		with open(self.kind.directory + '/map.csv', 'rb') as csv_map:
+			reader = csv.DictReader(csv_map)
+			for row in reader:
+				m[row['slide']] = row['mask in hex']
+		return m
 
 	#opens the given pptx and starts the slide show
 	def start_pres(self):

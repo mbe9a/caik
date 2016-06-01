@@ -167,7 +167,7 @@ class Random(MaskSet):
 
 ## decoder class
 class Decoder(object):
-    def __init__(self, dir_, cal = None,  averaging = True, caching = True):
+    def __init__(self, dir_, ppt, cal = None,  averaging = True, caching = True):
         '''
         Simple Image Decoder 
         
@@ -187,11 +187,11 @@ class Decoder(object):
         self.averaging = averaging
         self._da = None
         self.caching = caching
-    
+        self.ppt = ppt
     
     @property
     def hexs(self):
-        return os.listdir(self.dir_)
+        return self.ppt.map
     
     @property
     def res(self):
@@ -206,7 +206,7 @@ class Decoder(object):
         a xarray.DataArray object representing the entire data-set
         '''
         # return cached value if it exists
-        if self._da is not None and caching:
+        if self._da is not None and self.caching:
             return self._da
             
         hexs = self.hexs
@@ -215,8 +215,8 @@ class Decoder(object):
         
         M = [] # will hold weighted masks
          
-        for k in hexs:
-            n = rf.ran(self.dir_+'/'+k)
+        for k in hexs.keys():
+            n = rf.ran(self.dir_ + '/slide_' + str(k))
             
             if self.cal is not None:
                 n = self.cal.apply_cal_to_list(n)
@@ -226,9 +226,9 @@ class Decoder(object):
             else:
                 n = n[sorted(n.keys())[-1]]
             
-            s = n.s[:,0,0].reshape(-1, 1, 1) # pull out single complex number
+            s = n.s[:, 0, 0].reshape(-1, 1, 1) # pull out single complex number
             
-            m = hex2mask(k,rank=rank) 
+            m = hex2mask(hexs[k], rank = rank)
             #copy mask allong frequency dimension
             m = expand_dims(m, 0).repeat(s.shape[0], 0) 
             m = m*s
@@ -236,10 +236,10 @@ class Decoder(object):
 
         M = array(M)
         n.frequency.unit = 'ghz'
-        da = DataArray(M, coords = [('mask_hex',hexs),
-                                  ('f_ghz',n.frequency.f_scaled),
-                                  ('row',range(res)),
-                                  ('col',range(res))])
+        da = DataArray(M, coords = [('mask_hex', hexs.values()),
+                                  ('f_ghz', n.frequency.f_scaled),
+                                  ('row', range(res)),
+                                  ('col', range(res))])
         
         if self.caching: 
             self._da = da 
@@ -257,7 +257,7 @@ class Decoder(object):
 
     @property
     def frequency(self):
-        return rf.ran(self.dir_ + '/' + self.hexs[0]).values()[0].frequency
+        return rf.ran(self.dir_ + '/slide_' + self.hexs.keys()[0]).values()[0].frequency
     
     
     def image_at(self, f,  attr = 's_db'):

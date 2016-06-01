@@ -218,42 +218,54 @@ class CAI(object):
 					return (x, y)
 
 	#routine to take hadamard image
-	def take_hadamard_image(self, hadamard, delay = 1, duty_cycle = False, measurements = 1, averaging_delay = 0):
+	def hadamard_image(self, hadamard, take_data = True, delay = 1, duty_cycle = False, measurements = 1, averaging_delay = 0, cal = None, averaging = True, caching = True, f = '634ghz', attr = 's_db'):
 		#retrieve/start slide show
-		ppt = projector.PPT(hadamard)
-		ppt.start_pres()
-		raw_input('Press Enter to Continue...')
+		'''
+		TO DO: implement modifiable duty_cyce
+		NOTE: might have to change order of slides for variant = 'both' --> currently: all primary then all inverse
+		future possibly: primary inverse primary inverse primary etc...
+		'''
+		if take_data:
+			ppt = projector.PPT(hadamard)
+			ppt.start_pres()
+			raw_input('Press Enter to Continue...')
 
-		directory = 'Data\\hadamard\\' + hadamard.name + '\\primary'
-		if not os.path.exists(directory):
-			os.mkdir('Data\\hadamard\\' + hadamard.name)
-			os.mkdir(directory)
+			directory_p = 'Data/hadamard/' + hadamard.name + '/primary'
+			if not os.path.exists(directory):
+				os.mkdir('Data/hadamard/' + hadamard.name)
+				os.mkdir(directory_p)
 
-		#take primary data
-		if hadamard.variant == 'primary' or hadmard.variant == 'both':
-			for x in range (0, hadamard.size):
-				ppt.show_slide(x + 2)
-				time.sleep(delay)
-				os.mkdir(directory + '\\slide_' + str(x + 2))
-				for y in range (0, measurements):
-					self.zva.get_network(name = 'measurement_' + str(y) + '.s1p').write_touchstone(dir = directory + '\\slide_' + str(x + 2) + '\\')
-					time.sleep(averaging_delay)
+			#take primary data
+			if hadamard.variant == 'primary' or hadmard.variant == 'both':
+				for x in range (0, hadamard.size):
+					ppt.show_slide(x + 2)
+					time.sleep(delay)
+					os.mkdir(directory_p + '/slide_' + str(x + 2))
+					for y in range (0, measurements):
+						self.zva.get_network(name = 'measurement_' + str(y) + '.s1p').write_touchstone(dir = directory_p + '/slide_' + str(x + 2) + '/')
+						time.sleep(averaging_delay)
 
-		directory = 'Data\\hadamard\\' + hadamard.name + '\\inverse'
-		if not os.path.exists(directory):
-			os.mkdir(directory)
+			directory_i = 'Data/hadamard/' + hadamard.name + '/inverse'
+			if not os.path.exists(directory_i):
+				os.mkdir(directory_i)
 
-		#take inverse data
-		if hadamard.variant == 'inverse' or hadamard.variant == 'both':
-			for x in range (0, hadamard.size):
-				ppt.show_slide(hadamard.size + x + 2)
-				time.sleep(delay)
-				os.mkdir(directory + '\\slide_' + str(hadamard.size + x + 2))
-				for y in range (0, measurements):
-					self.zva.get_network(name = 'measurement_' + str(y) + '.s1p').write_touchstone(dir = directory + '\\slide_' + str(hadamard.size + x + 2) + '\\')
-					time.sleep(averaging_delay)
+			#take inverse data
+			if hadamard.variant == 'inverse' or hadamard.variant == 'both':
+				for x in range (0, hadamard.size):
+					ppt.show_slide(hadamard.size + x + 2)
+					time.sleep(delay)
+					os.mkdir(directory_i + '/slide_' + str(hadamard.size + x + 2))
+					for y in range (0, measurements):
+						self.zva.get_network(name = 'measurement_' + str(y) + '.s1p').write_touchstone(dir = directory_i + '/slide_' + str(hadamard.size + x + 2) + '/')
+						time.sleep(averaging_delay)
 
-		projector.kill_pptx()
+			projector.kill_pptx()
+
+		'''
+		TO DO: implement variant options in decoder
+		'''
+		dec = decoder.Decoder(directory_p, ppt, cal = cal, averaging = averaging, caching = caching, attr = attr)
+		return dec.image_at(f)
 
 	def take_bar_image(self):
 		raise NotImplementedError

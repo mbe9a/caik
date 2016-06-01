@@ -3,18 +3,19 @@ Alex Arsenovic, Michael Eller, Noah Sauber
 UVA THZ CAI
 '''
 
-#import win32com.client
+import win32com.client
 from PIL import Image, ImageDraw
 import encoder
 import os
-#import MSO, MSPPT
+import MSO, MSPPT
 import csv
+import decoder
 
-# g = globals()
-# for c in dir(MSO.constants):
-# 	g[c] = getattr(MSO.constants, c)
-# for c in dir(MSPPT.constants):
-# 	g[c] = getattr(MSPPT.constants, c)
+g = globals()
+for c in dir(MSO.constants):
+	g[c] = getattr(MSO.constants, c)
+for c in dir(MSPPT.constants):
+	g[c] = getattr(MSPPT.constants, c)
 
 #class to hold variables for a bar power point
 class bar(object):
@@ -33,11 +34,11 @@ class bar(object):
 
 	@property
 	def directory(self):
-		return self.base_dir + '/Slide Shows/bar'
+		return self.base_dir + '\\Slide Shows\\bar'
 
 	@property
 	def path(self):
-		return self.directory + '/' + self.name
+		return self.directory + '\\' + self.name
 	
 #class to hold variables for a raster power point
 class raster(object):
@@ -58,11 +59,11 @@ class raster(object):
 
 	@property
 	def directory(self):
-		return self.base_dir + '/Slide Shows/raster'
+		return self.base_dir + '\\Slide Shows\\raster'
 
 	@property
 	def path(self):
-		return self.directory + '/' + self.name
+		return self.directory + '\\' + self.name
 	
 #class to hold variables for a hadamard power point
 class hadamard(object):
@@ -98,11 +99,11 @@ class hadamard(object):
 		
 	@property
 	def directory(self):
-		return self.base_dir + '/Slide Shows/hadamard/' + self.name
+		return self.base_dir + '\\Slide Shows\\hadamard\\' + self.name
 	
 	@property
 	def path(self):
-		return self.directory + '/' + self.name
+		return self.directory + '\\' + self.name
 	
 #class to hold variables for a random resolution/pattern power point
 class random(object):
@@ -122,11 +123,11 @@ class random(object):
 	
 	@property
 	def directory(self):
-		return self.base_dir + '/Slide Shows/random'
+		return self.base_dir + '\\Slide Shows\\random'
 	
 	@property
 	def path(self):
-		return self.directory + '/' + self.name
+		return self.directory + '\\' + self.name
 	
 #class to hold variables for a walsh power point
 class walsh(object):
@@ -146,11 +147,11 @@ class walsh(object):
 	
 	@property
 	def directory(self):
-		return self.base_dir + '/Slide Shows/walsh'
+		return self.base_dir + '\\Slide Shows\\walsh'
 
 	@property
 	def path(self):
-		return self.directory + '/' + self.name
+		return self.directory + '\\' + self.name
 	
 class PPT(object):
 	
@@ -336,19 +337,19 @@ class ppt_generator(object):
 					matrix = raw_masks[x]
 					encoder.draw_hadamard_mask(matrix, canvas_size, 0, 0, 2, draw)
 					#save image in pwd
-					image.save("mask.png")
+					image.save(hadamard.directory + '\\mask.png')
 
 					#write to csv map file (for decode)
 					writer.writerow({'slide': str(total - count + 2), 'mask in hex': invML[x]})
 
 					#add mask image to slide
-					mask = slide.Shapes.AddPicture(FileName = os.getcwd() + '\\mask.png', 
+					mask = slide.Shapes.AddPicture(FileName = hadamard.directory + '\\mask.png', 
 						LinkToFile = False, SaveWithDocument = True, Left = (width - height*scale)/2, Top = (height - height*scale)/2, 
 						Width = height*scale, Height = height*scale)
 					count += 1
 
 			if primary or both:
-				for x in range ((len(hm.matrixList)) - 1, -1, -1):
+				for x in range ((len(raw_masks)) - 1, -1, -1):
 					slide = Presentation.Slides.Add(1, 12)
 					background = slide.ColorScheme.Colors(1).RGB = 0
 					image = Image.new('RGB', (canvas_size, canvas_size), (255, 255, 255))
@@ -356,11 +357,11 @@ class ppt_generator(object):
 
 					matrix = encoder.inverse(raw_masks[x])
 					encoder.draw_hadamard_mask(matrix, canvas_size, 0, 0, 2, draw)
-					image.save("mask.png")
+					image.save(hadamard.directory + '\\mask.png')
 
 					writer.writerow({'slide': str(total - count + 2), 'mask in hex': matrixList[x]})
 					
-					mask = slide.Shapes.AddPicture(FileName = os.getcwd() + '\\mask.png', 
+					mask = slide.Shapes.AddPicture(FileName = hadamard.directory + '\\mask.png', 
 						LinkToFile = False, SaveWithDocument = True, Left = (width - height*scale)/2, Top = (height - height*scale)/2, 
 						Width = height*scale, Height = height*scale)
 					count += 1

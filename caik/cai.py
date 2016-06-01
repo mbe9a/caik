@@ -15,6 +15,7 @@ import time
 import pylab
 import matplotlib.pyplot as plt
 from skrf.media import Freespace
+from pylab import *
 
 import projector
 import decoder
@@ -230,9 +231,9 @@ class CAI(object):
 			ppt.start_pres()
 			raw_input('Press Enter to Continue...')
 
-			directory_p = 'Data/hadamard/' + hadamard.name + '/primary'
-			if not os.path.exists(directory):
-				os.mkdir('Data/hadamard/' + hadamard.name)
+			directory_p = 'Data\\hadamard\\' + hadamard.name + '\\primary'
+			if not os.path.exists(directory_p):
+				os.mkdir('Data\\hadamard\\' + hadamard.name)
 				os.mkdir(directory_p)
 
 			#take primary data
@@ -240,12 +241,12 @@ class CAI(object):
 				for x in range (0, hadamard.size):
 					ppt.show_slide(x + 2)
 					time.sleep(delay)
-					os.mkdir(directory_p + '/slide_' + str(x + 2))
+					os.mkdir(directory_p + '\\slide_' + str(x + 2))
 					for y in range (0, measurements):
-						self.zva.get_network(name = 'measurement_' + str(y) + '.s1p').write_touchstone(dir = directory_p + '/slide_' + str(x + 2) + '/')
+						self.zva.get_network(name = 'measurement_' + str(y) + '.s1p').write_touchstone(dir = directory_p + '\\slide_' + str(x + 2) + '\\')
 						time.sleep(averaging_delay)
 
-			directory_i = 'Data/hadamard/' + hadamard.name + '/inverse'
+			directory_i = 'Data\\hadamard\\' + hadamard.name + '\\inverse'
 			if not os.path.exists(directory_i):
 				os.mkdir(directory_i)
 
@@ -254,9 +255,9 @@ class CAI(object):
 				for x in range (0, hadamard.size):
 					ppt.show_slide(hadamard.size + x + 2)
 					time.sleep(delay)
-					os.mkdir(directory_i + '/slide_' + str(hadamard.size + x + 2))
+					os.mkdir(directory_i + '\\slide_' + str(hadamard.size + x + 2))
 					for y in range (0, measurements):
-						self.zva.get_network(name = 'measurement_' + str(y) + '.s1p').write_touchstone(dir = directory_i + '/slide_' + str(hadamard.size + x + 2) + '/')
+						self.zva.get_network(name = 'measurement_' + str(y) + '.s1p').write_touchstone(dir = directory_i + '\\slide_' + str(hadamard.size + x + 2) + '\\')
 						time.sleep(averaging_delay)
 
 			projector.kill_pptx()
@@ -264,8 +265,9 @@ class CAI(object):
 		'''
 		TO DO: implement variant options in decoder
 		'''
-		dec = decoder.Decoder(directory_p, ppt, cal = cal, averaging = averaging, caching = caching, attr = attr)
-		return dec.image_at(f)
+		dec = decoder.Decoder(directory_p, ppt, cal = cal, averaging = averaging, caching = caching)
+		dec.image_at(f, attr = attr)
+		savefig('Data\\hadamard\\' + hadamard.name + '\\image')
 
 	def take_bar_image(self):
 		raise NotImplementedError

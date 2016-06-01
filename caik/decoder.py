@@ -61,8 +61,11 @@ def bin2hex(binary):
     '''
     convert binary to hexadecimal
     '''
-    rank = int(log2(sqrt(len(binary))))
-    return "{0:#0{1}x}".format(int('0b'+''.join(binary), base = 0), (2**rank)**2/4 + 2)
+    binary_adj = ''
+    for character in binary:
+        binary_adj += str(character)
+    rank = int(log2(sqrt(len(binary_adj))))
+    return "{0:#0{1}x}".format(int('0b'+''.join(binary_adj), base = 0), (2**rank)**2/4 + 2)
     
 def mask2dec(mask):
     '''
@@ -216,7 +219,7 @@ class Decoder(object):
         M = [] # will hold weighted masks
          
         for k in hexs.keys():
-            n = rf.ran(self.dir_ + '/slide_' + str(k))
+            n = rf.ran(self.dir_ + '\\slide_' + str(k))
             
             if self.cal is not None:
                 n = self.cal.apply_cal_to_list(n)
@@ -257,7 +260,7 @@ class Decoder(object):
 
     @property
     def frequency(self):
-        return rf.ran(self.dir_ + '/slide_' + self.hexs.keys()[0]).values()[0].frequency
+        return rf.ran(self.dir_ + '\\slide_' + self.hexs.keys()[0]).values()[0].frequency
     
     
     def image_at(self, f,  attr = 's_db'):

@@ -98,11 +98,11 @@ class hadamard(object):
 		
 	@property
 	def directory(self):
-		return self.base_dir + '\\Slide Shows\\hadamard\\' + name
+		return self.base_dir + '\\Slide Shows\\hadamard\\' + self.name
 	
 	@property
 	def path(self):
-		return self.directory + '\\' + name
+		return self.directory + '\\' + self.name
 	
 #class to hold variables for a random resolution/pattern power point
 class random(object):
@@ -126,7 +126,7 @@ class random(object):
 	
 	@property
 	def path(self):
-		return self.directory + '\\' + name
+		return self.directory + '\\' + self.name
 	
 #class to hold variables for a walsh power point
 class walsh(object):
@@ -150,7 +150,7 @@ class walsh(object):
 
 	@property
 	def path(self):
-		return self.directory + '\\' + name
+		return self.directory + '\\' + self.name
 	
 class PPT(object):
 	

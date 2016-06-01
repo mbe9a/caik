@@ -222,20 +222,21 @@ class CAI(object):
 		#retrieve/start slide show
 		ppt = projector.PPT(hadamard)
 		ppt.start_pres()
+		raw_input('Press Enter to Continue...')
 
 		directory = 'Data\\hadamard\\' + hadamard.name + '\\primary'
 		if not os.path.exists(directory):
+			os.mkdir('Data\\hadamard\\' + hadamard.name)
 			os.mkdir(directory)
 
 		#take primary data
-		if hadamard.variant == 'primary' or hadmard.variant == 'both'
+		if hadamard.variant == 'primary' or hadmard.variant == 'both':
 			for x in range (0, hadamard.size):
 				ppt.show_slide(x + 2)
 				time.sleep(delay)
-				os.mkdir('slide_' + str(x + 2))
+				os.mkdir(directory + '\\slide_' + str(x + 2))
 				for y in range (0, measurements):
-					self.zva.get_network(name = 'measurement_' + str(y) + '.s1p')
-					self.zva.write_touchstone(dir = directory + '\\')
+					self.zva.get_network(name = 'measurement_' + str(y) + '.s1p').write_touchstone(dir = directory + '\\slide_' + str(x + 2) + '\\')
 					time.sleep(averaging_delay)
 
 		directory = 'Data\\hadamard\\' + hadamard.name + '\\inverse'
@@ -247,10 +248,9 @@ class CAI(object):
 			for x in range (0, hadamard.size):
 				ppt.show_slide(hadamard.size + x + 2)
 				time.sleep(delay)
-				os.mkdir('slide_' + str(hadamard.size + x + 2))
+				os.mkdir(directory + '\\slide_' + str(hadamard.size + x + 2))
 				for y in range (0, measurements):
-					self.zva.get_network(name = 'measurement_' + str(y) + '.s1p')
-					self.zva.write_touchstone(dir = directory + '\\')
+					self.zva.get_network(name = 'measurement_' + str(y) + '.s1p').write_touchstone(dir = directory + '\\slide_' + str(hadamard.size + x + 2) + '\\')
 					time.sleep(averaging_delay)
 
 		projector.kill_pptx()

@@ -94,7 +94,9 @@ class Initial(Frame):
 		Button(self, text = "Take Calibration", command = self.calibrate).grid(row = 2)
 
 	def initialize(self):
-		self.controller.cai = cai.CAI(start = self.start.get())
+		if self.controller.cai is None:
+			self.controller.cai = cai.CAI(start = self.start.get())
+		self.controller.status.config(text =  "CAI already initialized")
 
 	def calibrate(self):
 		if self.controller.cai is None:
@@ -117,37 +119,49 @@ class Image(Frame):
 		self.controller = controller
 
 		#control variables
-		self.method = StringVar()
-		self.base_dir = StringVar()
-		
-		self.rank = IntVar()
-		self.var = IntVar()
-	
+		self.c_method = StringVar()
+		self.c_var = StringVar()
+
+		self.c_xpos = IntVar()
+		self.c_ypos = IntVar()
+		self.c_rank = IntVar()
+
+
 		#buttons
 		Button(self, text = "Take Image", command = self.image).pack()
 		Button(self, text = "Recalibrate", command = self.recalibrate).pack()
 
-		Radiobutton(self, text = "Primary", variable = self.var, value = 0).pack()
-		Radiobutton(self, text = "Inverted", variable = self.var, value = 1).pack()
-		Radiobutton(self, text = "Both", variable = self.var, value = 2).pack()
+		Radiobutton(self, text = "Primary", variable = self.c_var, value = 0).pack()
+		Radiobutton(self, text = "Inverted", variable = self.c_var, value = 1).pack()
+		Radiobutton(self, text = "Both", variable = self.c_var, value = 2).pack()
 
 		#options
-		OptionMenu(self, self.method, "Hadamard", "Raster", "Bar").pack()
+		self.om = OptionMenu(self, self.c_method, "hadamard", "raster", "bar")
+		self.om.bind("<Enter>", self.update)
+		self.om.pack()
 
 		#entries
-		Entry(self, textvariable = self.rank).pack()
-		Entry(self, textvariable = self.base_dir).pack()
+		self.rank = Entry(self, text = "Rank", textvariable = self.c_rank)
+		self.xpos = Entry(self, text = "x distance", textvariable = self.c_xpos)
+		self.ypos = Entry(self, text = "y distance", textvariable = self.c_ypos)
 
 		#labels
-		Label(self, text = "Select resolution ").pack()
-		Label(self, text = "Select an imaging method ").pack()
+		self.l_rank = Label(self, text = "Select rank ")
+		self.l_method = Label(self, text = "Select an imaging method ")
+
+	def update(self, event):
+		f = self.var.get()
+		if f is "hadamard":
+			self.rank
 
 
 	def image(self):
-		print 1
+		f = self.var.get()
+		if f is "hadamard":
+			obj = pro.F()
+		self.controller.cai.take_hadamard_image(obj)
 
 	def recalibrate(self):
-
 		self.controller.show_frame("Initial")
 
 

@@ -20,8 +20,8 @@ from numpy.random import randint
 from xarray import DataArray
 from scipy.linalg import hadamard
 
-#import cai
 
+import encoder
 
 
 # conversion between masks representations
@@ -29,7 +29,7 @@ def dec2bin(dec, rank):
     '''
     convert decimal to binary with given width
     '''
-    binary = binary_repr(int(dec), width=(2**rank)**2)
+    binary = binary_repr(int(dec), width = (2**rank)**2)
     return binary
 
 def hex2bin(hex_dec, rank):
@@ -64,7 +64,11 @@ def bin2hex(binary):
     '''
     convert binary to hexadecimal
     '''
-    return "{0:#0{1}x}".format(int('0b'+''.join(binary), base = 0), (2**rank)**2/4 + 2)
+    binary_adj = ''
+    for character in binary:
+        binary_adj += str(character)
+    rank = int(log2(sqrt(len(binary_adj))))
+    return "{0:#0{1}x}".format(int('0b'+''.join(binary_adj), base = 0), (2**rank)**2/4 + 2)
     
 def mask2dec(mask):
     '''
@@ -78,11 +82,11 @@ def mask2hex(mask):
     translates a mask to its hexadecimal representation
     '''
     flat = mask.flatten().astype('str')
-    return bin2hex(flat)
+    return bin2hex(flat, log2(sqrt(len(flat))))
 
 ## masks 
 class MaskSet(object):
-    def __init__(self, rank, invert=False):
+    def __init__(self, rank, invert = False):
         self.rank =rank
         self.invert=False
     
@@ -109,15 +113,20 @@ class MaskSet(object):
         
 class Hadamard(MaskSet):
     '''
+    a little redundant with encoder, need to edit code structure/hierarchy
     '''
     @property
-    def masks(self):
-        rank = self.rank
-        if self.invert:
-            matrixList = cai.list2bn(rank, cai.inverse_ML(cai.createH(rank,'111-',[])))
-        else:
-            matrixList = cai.list2bn(rank, cai.createH(rank,'111-',[]))
-        return array([[int(k) for k in matrix] for matrix in matrixList]).reshape(((2**rank)**2,(2**rank)**2))
+    def hadamard_encoder(self):
+        return encoder.Hadamard(self.rank)
+
+    @property
+    def primary_masks(self):
+        return self.hadamard_encoder.primary_masks
+
+    @property
+    def inverse_masks(self):
+        return self.hadamard_encoder.inverse_masks
+    
 
 class Raster(MaskSet):
     '''
@@ -169,7 +178,7 @@ class Random(MaskSet):
 
 ## decoder class
 class Decoder(object):
-    def __init__(self, dir_, cal=None,  averaging=True,caching=True):
+    def __init__(self, dir_, ppt, cal = None,  averaging = True, caching = True):
         '''
         Simple Image Decoder 
         
@@ -186,14 +195,14 @@ class Decoder(object):
         '''
         self.dir_ = dir_
         self.cal = cal
-        self.averaging =averaging
+        self.averaging = averaging
         self._da = None
-        self.caching=caching
-    
+        self.caching = caching
+        self.ppt = ppt
     
     @property
     def hexs(self):
-        return os.listdir(self.dir_)
+        return self.ppt.map
     
     @property
     def res(self):
@@ -208,17 +217,17 @@ class Decoder(object):
         a xarray.DataArray object representing the entire data-set
         '''
         # return cached value if it exists
-        if self._da is not None and caching:
+        if self._da is not None and self.caching:
             return self._da
             
-        hexs= self.hexs
+        hexs = self.hexs
         res = self.res
         rank = self.rank
         
-        M=[] # will hold weighted masks
+        M = [] # will hold weighted masks
          
-        for k in hexs:
-            n = rf.ran(self.dir_+'/'+k)
+        for k in hexs.keys():
+            n = rf.ran(self.dir_ + '\\slide_' + str(k))
             
             if self.cal is not None:
                 n = self.cal.apply_cal_to_list(n)
@@ -228,22 +237,22 @@ class Decoder(object):
             else:
                 n = n[sorted(n.keys())[-1]]
             
-            s = n.s[:,0,0].reshape(-1,1,1) # pull out single complex number
+            s = n.s[:, 0, 0].reshape(-1, 1, 1) # pull out single complex number
             
-            m = hex2mask(k,rank=rank) 
+            m = hex2mask(hexs[k], rank = rank)
             #copy mask allong frequency dimension
-            m = expand_dims(m,0).repeat(s.shape[0],0) 
+            m = expand_dims(m, 0).repeat(s.shape[0], 0) 
             m = m*s
             M.append(m)
 
-        M= array(M)
-        n.frequency.unit='ghz'
-        da = DataArray(M, coords=[('mask_hex',hexs),
-                                  ('f_ghz',n.frequency.f_scaled),
-                                  ('row',range(res)),
-                                  ('col',range(res))])
+        M = array(M)
+        n.frequency.unit = 'ghz'
+        da = DataArray(M, coords = [('mask_hex', hexs.values()),
+                                  ('f_ghz', n.frequency.f_scaled),
+                                  ('row', range(res)),
+                                  ('col', range(res))])
         
-        if caching: 
+        if self.caching: 
             self._da = da 
         return da
     
@@ -254,15 +263,15 @@ class Decoder(object):
         
         the ports are the pixels. nuff said
         '''
-        s = self.da.mean(dim='mask_hex').data
-        return rf.Network(s=s,z0=1,frequency=self.frequency,*args, **kw)
+        s = self.da.mean(dim = 'mask_hex').data
+        return rf.Network(s = s, z0 = 1, frequency = self.frequency, *args, **kw)
 
     @property
     def frequency(self):
-        return rf.ran(self.dir_+'/'+self.hexs[0]).values()[0].frequency
+        return rf.ran(self.dir_ + '\\slide_' + self.hexs.keys()[0]).values()[0].frequency
     
     
-    def image_at(self, f,  attr='s_db'):
+    def image_at(self, f,  attr = 's_db'):
         '''
         Image at `f` for a given scalar `attr` of a skrf.Network
         
@@ -276,23 +285,23 @@ class Decoder(object):
         colorbar()
         grid(0)
     
-    def image_interact(self,  attr='s_db'):
+    def image_interact(self,  attr = 's_db'):
         '''
         interactive repr of the sprectral image projection onto `attr`
         '''
-        freq= self.frequency
-        f=(freq.start_scaled, freq.stop_scaled,freq.step_scaled)
+        freq = self.frequency
+        f = (freq.start_scaled, freq.stop_scaled,freq.step_scaled)
         def func(f):
             x = self.ntwk[str(f)].__getattribute__(attr)[0,...]
             matshow(x)
             colorbar()
             grid(0)
-        return interact(func,f=f )
+        return interact(func, f = f )
         
         
     
 # this is dum. but might be good for pixel cross-talk estimattion
-def decode_with_rotation(dir_, f='634ghz', cal=None,  averaging=True):
+def decode_with_rotation(dir_, f = '634ghz', cal = None,  averaging = True):
     '''
     decode a hadamard-encoded dataset at a given frequency
     
@@ -317,15 +326,15 @@ def decode_with_rotation(dir_, f='634ghz', cal=None,  averaging=True):
 
     # calculate inverse hadamard-delta transform`T`
     # this can be pre-computed 
-    bins = [hex2bin(k,rank=rank) for k in hexs]
-    T = array([array(list(k), dtype=int) for k in bins])
+    bins = [hex2bin(k,rank = rank) for k in hexs]
+    T = array([array(list(k), dtype = int) for k in bins])
     T_inv = inv(T)
 
     # create measurement frame `M` in hadamard space. 
     M = []
 
     for k in hexs:
-        b = array(list(hex2bin(k,rank=rank)),dtype=int)
+        b = array(list(hex2bin(k,rank = rank)), dtype = int)
         n = rf.ran(dir_+'/'+k)
         
         if cal is not None:
@@ -341,7 +350,7 @@ def decode_with_rotation(dir_, f='634ghz', cal=None,  averaging=True):
         m = s*b
         M.append(m)
 
-    M= array(M)
+    M = array(M)
 
     # transform the frame `M` in hadamard space to 
     # frame `A` in delta space

@@ -4,6 +4,7 @@ caik/MSPPT.py
 caik/__init__.py
 caik/cai.py
 caik/decoder.py
+caik/encoder.py
 caik/instruments.py
 caik/projector.py
 caik.egg-info/PKG-INFO

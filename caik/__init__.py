@@ -8,7 +8,7 @@ from six.moves import xrange
 
 __version__ = '1.0'
 
-
+'''
 from . import cai
 from . import decoder
 from . import instruments
@@ -17,5 +17,5 @@ from . import instruments
 from .cai import *
 from .decoder import *
 from .instruments import *
-
+'''
 

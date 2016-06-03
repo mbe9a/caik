@@ -14,12 +14,13 @@ from pylab import * # this is sloppy
 from ipywidgets import  interact
 
 import os 
+import numpy as np
 from numpy.linalg import inv
 from numpy.random import randint
 from xarray import DataArray
 from scipy.linalg import hadamard
 
-import cai
+#import cai
 
 
 
@@ -100,6 +101,11 @@ class MaskSet(object):
     @property
     def hexs(self):
         return [mask2hex(k) for k in masks]
+    
+    @property
+    def frame(self):
+        return np.array([k.flatten() for k in self.masks])
+        
         
 class Hadamard(MaskSet):
     '''

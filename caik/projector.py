@@ -3,19 +3,19 @@ Alex Arsenovic, Michael Eller, Noah Sauber
 UVA THZ CAI
 '''
 
-import win32com.client
+#import win32com.client
 from PIL import Image, ImageDraw
 import encoder
 import os
-import MSO, MSPPT
+#import MSO, MSPPT
 import csv
 import decoder
 
-g = globals()
-for c in dir(MSO.constants):
-	g[c] = getattr(MSO.constants, c)
-for c in dir(MSPPT.constants):
-	g[c] = getattr(MSPPT.constants, c)
+# g = globals()
+# for c in dir(MSO.constants):
+# 	g[c] = getattr(MSO.constants, c)
+# for c in dir(MSPPT.constants):
+# 	g[c] = getattr(MSPPT.constants, c)
 
 #class to hold variables for a bar power point
 class bar(object):

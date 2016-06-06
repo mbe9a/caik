@@ -82,7 +82,7 @@ def mask2hex(mask):
     translates a mask to its hexadecimal representation
     '''
     flat = mask.flatten().astype('str')
-    return bin2hex(flat, log2(sqrt(len(flat))))
+    return bin2hex(flat)
 
 ## masks 
 class MaskSet(object):
@@ -185,7 +185,7 @@ class Decoder(object):
         Examples
         ----------
         dir_= '../CAI/Bar Image/hadamard_2/Primary'
-        d = Decoder(dir_=dir_,averaging =True)
+        d = Decoder(dir_ = dir_, averaging = True)
         
         
         d.da # full data available as `xarray.DataArray`

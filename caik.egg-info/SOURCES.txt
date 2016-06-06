@@ -5,8 +5,10 @@ caik/__init__.py
 caik/cai.py
 caik/decoder.py
 caik/encoder.py
+caik/gui.py
 caik/instruments.py
 caik/projector.py
+caik/structure.py
 caik.egg-info/PKG-INFO
 caik.egg-info/SOURCES.txt
 caik.egg-info/dependency_links.txt

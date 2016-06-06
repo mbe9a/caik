@@ -39,16 +39,19 @@ class GUI(Tk):
 		self.status = Label(self, text = 'Hang by the bar. Put out the vibe.', bd = 1, relief = SUNKEN, anchor = W)
 		self.status.pack(side = BOTTOM, fill = X)
 
-		# #sidebar
+		#sidebar
 		self.sidebar = Frame(self, bg = 'red')
 		Button(self.sidebar, text = 'Home', command = lambda: self.show_frame('Home')).pack(fill = 'both', padx = 2, pady = 2)
 		Button(self.sidebar, text = 'Control', command = lambda: self.show_frame('Control')).pack(fill = 'both', padx = 2, pady = 2)
 		Button(self.sidebar, text = 'Calibrate', command = lambda: self.show_frame('Cal')).pack(fill = 'both', padx = 2, pady = 2)
 		Button(self.sidebar, text = 'Capture', command = lambda: self.show_frame('Cap')).pack(fill = 'both', padx = 2, pady = 2)
 		Button(self.sidebar, text = 'View', command = lambda: self.show_frame('View')).pack(fill = 'both', padx = 2, pady = 2)
+		Button(self.sidebar, text = 'Exit').pack(side = BOTTOM, fill = 'both', padx = 2, pady = 2)
+		Button(self.sidebar, text = 'Save').pack(side = BOTTOM, fill = 'both', padx = 2, pady = 2)
+
 		self.sidebar.pack(side = LEFT, fill = Y)
 
-		#window
+		#container
 		container.pack(side = 'top', fill = 'both', expand = True)
 		container.grid_rowconfigure(0, weight = 1)
 		container.grid_columnconfigure(0, weight = 1)
@@ -100,24 +103,16 @@ class Control(Frame):
 
 		Frame.__init__(self, parent)
 		self.controller = controller
+				
+		self.mirror_pos_c = IntVar()
+		self.si_pos_c = IntVar()
 		
-		self.start = IntVar()
-		
-		self.mirror_pos = IntVar()
-		self.mirror_pos.trace('w', self.move_mirror)
-		
-		self.si_pos = IntVar()
-		self.si_pos.trace('w', self.move_si)
-
-		self.fpnts = IntVar()
-		self.fpnts.trace('w', self.set_points)
-		self.fstart = IntVar()
-		self.fstart.trace('w', self.set_start)
-		self.fend = IntVar()
-		self.fend.trace('w', self.set_end)
+		self.fpnts_c = IntVar()
+		self.fstart_c = IntVar()
+		self.fend_c = IntVar()
 		
 		self.connect = Button(self, text = 'Connect GPIB instruments', command = self.initialize)
-		self.connect.grid(row = 0, column = 1, sticky = W)
+		self.connect.pack(side = TOP, padx = 2, pady = 2)
 
 	def initialize(self):
 		self.controller.cai.start_esp()
@@ -125,38 +120,48 @@ class Control(Frame):
 
 		self.connect.grid_forget()
 		#esp
-		Entry(self, textvariable = self.mirror_pos).grid(row = 3, column = 1)
+		self.mirror_pos = Entry(self, textvariable = self.mirror_pos_c)
+		self.mirror_pos.grid(row = 3, column = 1)
+		self.mirror_pos.bind('<Return>', self.move_mirror)
 		Label(self, text = 'Mirror Axis').grid(row = 3, column = 0, sticky = E)
 
-		Entry(self, textvariable = self.si_pos).grid(row = 5, column = 1)
+		self.si_pos = Entry(self, textvariable = self.si_pos_c)
+		self.si_pos.grid(row = 5, column = 1)
+		self.si_pos.bind('<Return>', self.move_si)
 		Label(self, text = 'Silicon Axis').grid(row = 5, column = 0, sticky = E)
 
 		#zva
-		Entry(self, textvariable = self.fpnts).grid(row = 7, column = 1)
+		self.fpnts = Entry(self, textvariable = self.fpnts_c)
+		self.fpnts.grid(row = 7, column = 1)
+		self.fpnts.bind('<Return>', self.set_points)
 		Label(self, text = 'Number of Data Points').grid(row = 7, column = 0, sticky = E)
 
-		Entry(self, textvariable = self.fstart).grid(row = 9, column = 1)
+		self.fstart = Entry(self, textvariable = self.fstart_c)
+		self.fstart.grid(row = 9, column = 1)
+		self.fstart.bind('<Return>', self.set_start)
 		Label(self, text = 'Start Frequency').grid(row = 9, column = 0, sticky = E)
 
-		Entry(self, textvariable = self.fend).grid(row = 11, column = 1)
+		self.fend = Entry(self, textvariable = self.fend_c)
+		self.fend.grid(row = 11, column = 1)
+		self.fend.bind('<Return>', self.set_end)
 		Label(self, text = 'End Frequency').grid(row = 11, column = 0, sticky = E)
 
-	def move_mirror(self, n, m, x):
+	def move_mirror(self):
 		self.controller.esp.current_axis = 1
-		self.controller.cai.esp.position = mirror_pos
+		self.controller.cai.esp.position = mirror_pos_c.get()
 
-	def move_si(self, n, m, x):
+	def move_si(self):
 		self.controller.esp.current_axis = 2
-		self.controller.cai.esp.position = si_pos
+		self.controller.cai.esp.position = si_pos_c.get()
 
-	def set_points(self, n, m, x):
-		self.controller.cai.zva.f_npoints = self.fpnts
+	def set_points(self):
+		self.controller.cai.zva.f_npoints = self.fpnts_c.get()
 
-	def set_start(self, n, m, x):
-		self.controller.cai.zva.f_start = self.fstart
+	def set_start(self):
+		self.controller.cai.zva.f_start = self.fstart_c.get()
 
-	def set_end(self, n, m , x):
-		self.controller.cai.zva.f_stop = self.fend
+	def set_end(self):
+		self.controller.cai.zva.f_stop = self.fend_c.get()
 
 class Cal(Frame):
 	def __init__(self, parent, controller):
@@ -166,8 +171,8 @@ class Cal(Frame):
 
 		self.cal_load = IntVar()
 
-		Checkbutton(self, text = 'Load/Match', variable = self.cal_load).grid(row = 2, column = 1, sticky = W)
-		Button(self, text = 'Take Calibration', command = self.calibrate).grid(row = 2)
+		Button(self, text = 'Take Calibration', command = self.calibrate).pack(side = TOP, padx = 5, pady = 5)
+		Checkbutton(self, text = 'Load/Match', variable = self.cal_load).pack(side = TOP)
 
 	def calibrate(self):
 		if self.controller.cai is None:

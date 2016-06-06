@@ -104,12 +104,12 @@ class Control(Frame):
 		Frame.__init__(self, parent)
 		self.controller = controller
 				
-		self.mirror_pos_c = IntVar()
-		self.si_pos_c = IntVar()
+		self.mirror_pos_c = DoubleVar()
+		self.si_pos_c = DoubleVar()
 		
 		self.fpnts_c = IntVar()
-		self.fstart_c = IntVar()
-		self.fend_c = IntVar()
+		self.fstart_c = DoubleVar()
+		self.fend_c = DoubleVar()
 		
 		self.connect = Button(self, text = 'Connect GPIB instruments', command = self.initialize)
 		self.connect.pack(side = TOP, padx = 2, pady = 2)
@@ -118,17 +118,22 @@ class Control(Frame):
 		self.controller.cai.start_esp()
 		self.controller.cai.start_zva()
 
-		self.connect.grid_forget()
+		self.fpnts_c.set(self.controller.cai.zva.get_f_npoints())
+		self.fstart_c.set(self.controller.cai.zva.get_f_start()/1000000000)
+		self.fend_c.set(self.controller.cai.zva.get_f_stop()/1000000000)
+
+		self.connect.pack_forget()
+		
 		#esp
 		self.mirror_pos = Entry(self, textvariable = self.mirror_pos_c)
 		self.mirror_pos.grid(row = 3, column = 1)
 		self.mirror_pos.bind('<Return>', self.move_mirror)
-		Label(self, text = 'Mirror Axis').grid(row = 3, column = 0, sticky = E)
+		Label(self, text = 'Mirror Position (mm)').grid(row = 3, column = 0, sticky = E)
 
-		self.si_pos = Entry(self, textvariable = self.si_pos_c)
-		self.si_pos.grid(row = 5, column = 1)
-		self.si_pos.bind('<Return>', self.move_si)
-		Label(self, text = 'Silicon Axis').grid(row = 5, column = 0, sticky = E)
+		# self.si_pos = Entry(self, textvariable = self.si_pos_c)
+		# self.si_pos.grid(row = 5, column = 1)
+		# self.si_pos.bind('<Return>', self.move_si)
+		# Label(self, text = 'Silicon Position (mm)').grid(row = 5, column = 0, sticky = E)
 
 		#zva
 		self.fpnts = Entry(self, textvariable = self.fpnts_c)
@@ -139,29 +144,46 @@ class Control(Frame):
 		self.fstart = Entry(self, textvariable = self.fstart_c)
 		self.fstart.grid(row = 9, column = 1)
 		self.fstart.bind('<Return>', self.set_start)
-		Label(self, text = 'Start Frequency').grid(row = 9, column = 0, sticky = E)
+		Label(self, text = 'Start Frequency (GHz)').grid(row = 9, column = 0, sticky = E)
 
 		self.fend = Entry(self, textvariable = self.fend_c)
 		self.fend.grid(row = 11, column = 1)
 		self.fend.bind('<Return>', self.set_end)
-		Label(self, text = 'End Frequency').grid(row = 11, column = 0, sticky = E)
+		Label(self, text = 'End Frequency (GHz)').grid(row = 11, column = 0, sticky = E)
 
-	def move_mirror(self):
-		self.controller.esp.current_axis = 1
-		self.controller.cai.esp.position = mirror_pos_c.get()
+	def move_mirror(self, x):
+		self.controller.cai.esp.current_axis = 1
+		self.controller.cai.esp.position = self.mirror_pos_c.get()
 
-	def move_si(self):
-		self.controller.esp.current_axis = 2
-		self.controller.cai.esp.position = si_pos_c.get()
+	def move_si(self, x):
+		self.controller.cai.esp.current_axis = 2
+		self.controller.cai.esp.position = self.si_pos_c.get()
 
-	def set_points(self):
-		self.controller.cai.zva.f_npoints = self.fpnts_c.get()
+	def set_points(self, x):
+		f = self.fpnts_c.get()
+		if f < 2:
+			f = 2
+		if f > 400:
+			f = 400
+		self.controller.cai.zva.set_f_npoints(f)
 
-	def set_start(self):
-		self.controller.cai.zva.f_start = self.fstart_c.get()
+	def set_start(self, x):
+		f = self.fstart_c.get()
+		if f < 500:
+			f = 500
+		if f >= self.fend_c.get():
+			f = self.fend_c.get() - 1
+		f = f*1000000000
+		self.controller.cai.zva.set_f_start(f)
 
-	def set_end(self):
-		self.controller.cai.zva.f_stop = self.fend_c.get()
+	def set_end(self, x):
+		f = self.fend_c.get()
+		if f > 750:
+			f = 750
+		if f <= self.fstart_c.get():
+			f = self.fstart_c.get() - 1
+		f = f*1000000000
+		self.controller.cai.zva.set_f_stop(f)
 
 class Cal(Frame):
 	def __init__(self, parent, controller):

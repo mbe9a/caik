@@ -48,10 +48,10 @@ class data_structure(object):
 		return False
 
 def save(d_s, name, base_dir = os.getcwd()):
-	pickle.dump(d_s, open(base_dir + name + '.p', 'wb'))
+	pickle.dump(d_s, open(base_dir + '\\' + name + '.p', 'wb'))
 
 def load(name, base_dir = os.getcwd()):
-	return pickle.load(open(base_dir + name + '.p', 'rb'))
+	return pickle.load(open(base_dir + '\\' + name + '.p', 'rb'))
 
 
 	

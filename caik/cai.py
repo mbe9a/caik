@@ -244,11 +244,11 @@ class CAI(object):
 				ppt.show_slide(x + 2)
 				time.sleep(delay)
 				#os.mkdir(directory_p + '\\slide_' + str(x + 2))
-				measurements = []
+				measurement_list = []
 				for y in range (0, measurements):
-					measurements.append(self.zva.get_network(name = 'measurement_' + str(y) + '.s1p'))#.write_touchstone(dir = directory_p + '\\slide_' + str(x + 2) + '\\')
+					measurement_list.append(self.zva.get_network(name = 'measurement_' + str(y) + '.s1p'))#.write_touchstone(dir = directory_p + '\\slide_' + str(x + 2) + '\\')
 					time.sleep(averaging_delay)
-				data.add_primary_data(decoder.hex2mask(hadamard.primary_masks[x]), measurments)
+				data.add_primary_data(decoder.mask2hex(hadamard.primary_masks[x]), measurement_list)
 		#directory_i = 'Data\\hadamard\\' + hadamard.name + '\\inverse'
 		#if not os.path.exists(directory_i):
 			#os.mkdir(directory_i)
@@ -259,11 +259,11 @@ class CAI(object):
 				ppt.show_slide(hadamard.size + x + 2)
 				time.sleep(delay)
 				#os.mkdir(directory_i + '\\slide_' + str(hadamard.size + x + 2))
-				measurements = []
+				measurement_list = []
 				for y in range (0, measurements):
-					measurements.append(self.zva.get_network(name = 'measurement_' + str(y) + '.s1p'))#.write_touchstone(dir = directory_i + '\\slide_' + str(hadamard.size + x + 2) + '\\')
+					measurement_list.append(self.zva.get_network(name = 'measurement_' + str(y) + '.s1p'))#.write_touchstone(dir = directory_i + '\\slide_' + str(hadamard.size + x + 2) + '\\')
 					time.sleep(averaging_delay)
-				data.add_inverse_data(decoder.hex2mask(hadamard.inverse_masks[x]), measurments)
+				data.add_inverse_data(decoder.mask2hex(hadamard.inverse_masks[x]), measurement_list)
 
 		projector.kill_pptx()
 

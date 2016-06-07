@@ -211,7 +211,7 @@ class Cal(Frame):
 		self.match_load = IntVar()
 		
 		self.top_frame = Frame(self, bg = 'green')
-		Button(self.top_frame, text = 'Take Calibration', command = self.show_cal).pack(side = LEFT, padx = 5, pady = 5)
+		Button(self.top_frame, text = 'Take Calibration', command = self.calibrate).pack(side = LEFT, padx = 5, pady = 5)
 		Checkbutton(self.top_frame, text = 'Load/Match', variable = self.match_load).pack(side = LEFT)
 		self.top_frame.pack(side = TOP, fill = X)
 
@@ -230,7 +230,9 @@ class Cal(Frame):
 
 		if hasattr(self.controller.cai, 'esp'):
 			self.controller.status.config(text =  'Calibrating...')
-			self.controller.cal = self.controller.cai.take_simple_cal(self.cal_load.get())
+			self.controller.cai.esp.current_axis = 2
+			self.controller.cal = self.controller.cai.take_simple_cal(self.match_load.get())
+			self.show_cal()
 			self.controller.status.config(text =  'Calibration complete.')
 			return
 		

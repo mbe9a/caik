@@ -5,14 +5,19 @@ UVA THZ CAI
 
 #graphic user interface for caik
 
+#base python imports
 from Tkinter import *
+import ttk
 import tkFileDialog
+import matplotlib.pyplot as plt
+from PIL import Image, ImageTk
+#caik imports
 import cai
 import projector as pro
 import decoder as deco
 import encoder as enc
 import instruments as inst
-
+#additional imports
 import skrf as rf
 
 
@@ -25,6 +30,7 @@ class GUI(Tk):
 		self.cai = cai.CAI()
 		self.cal = None
 		self.kind = None
+		self.name = None
 
 		container = Frame(self)
 
@@ -65,25 +71,27 @@ class GUI(Tk):
 		self.filemenu.add_command(label = 'Save as...')
 		self.filemenu.add_separator()
 		self.filemenu.add_command(label = 'Open Cal...', command = self.open_cal)
+		self.bind_all('<Control-Alt-o>', self.open_cal)
 		self.filemenu.add_command(label = 'Save Cal...', command = self.save_cal)
+		self.bind_all('<Control-Alt-s>', self.save_cal)
 		self.filemenu.add_separator()
 		self.menubar.add_cascade(label = 'File', menu = self.filemenu)
 	
 		self.config(menu=self.menubar)
 
-		self.show_frame('Cap')
+		self.show_frame('Cal')
 
 		
-	def open_cal(self):
+	def open_cal(self, event = '<Control-Alt-o>'):
 		f = tkFileDialog.askopenfilename(filetypes = [('Calibration', '.cal')])
 		if f is None:
 			print('Calibration load failed')
 			return
 		self.cal = rf.read(f)
 		self.status.config(text = 'Calibration loaded successfully')
+		self.show_frame('Cal')
 
-
-	def save_cal(self):
+	def save_cal(self, event = '<Control-Alt-s>'):
 		f = tkFileDialog.asksaveasfile(mode = 'w', defaultextension = '.cal')
 		if f is None:
 			self.status.config(text = 'Calibration save failed')
@@ -93,6 +101,9 @@ class GUI(Tk):
 
 	def show_frame(self, page_name):
 		frame = self.frames[page_name]
+		if page_name is 'Cal':
+			if self.cal != None:
+				frame.show_cal()
 		frame.tkraise()
 
 
@@ -197,10 +208,20 @@ class Cal(Frame):
 		Frame.__init__(self, parent)
 		self.controller = controller
 
-		self.cal_load = IntVar()
+		self.match_load = IntVar()
+		
+		self.top_frame = Frame(self, bg = 'green')
+		Button(self.top_frame, text = 'Take Calibration', command = self.show_cal).pack(side = LEFT, padx = 5, pady = 5)
+		Checkbutton(self.top_frame, text = 'Load/Match', variable = self.match_load).pack(side = LEFT)
+		self.top_frame.pack(side = TOP, fill = X)
 
-		Button(self, text = 'Take Calibration', command = self.calibrate).pack(side = TOP, padx = 5, pady = 5)
-		Checkbutton(self, text = 'Load/Match', variable = self.cal_load).pack(side = TOP)
+		self.smith = Frame(self, bg = 'blue')
+		self.smith.pack(side = TOP, fill = BOTH, expand = True)
+		self.cal_smith = Label(self.smith)
+
+
+		if hasattr(self.controller.cal, 'plot_caled_ntwks'):
+			self.show_cal()
 
 	def calibrate(self):
 		if self.controller.cai is None:
@@ -214,7 +235,18 @@ class Cal(Frame):
 			return
 		
 		self.controller.status.config(text =  'Calibration failed. One or more instruments not initialized.')
-		
+
+	def show_cal(self, attr='s_smith', show_legend=False,**kwargs):
+		self.controller.cal.plot_caled_ntwks()
+		plt.savefig('cal_smith.jpg')
+		image = Image.open("cal_smith.jpg")
+		photo = ImageTk.PhotoImage(image)
+
+		self.cal_smith.pack_forget()
+		self.cal_smith = Label(self.smith,image = photo)
+		self.cal_smith.image = photo
+		self.cal_smith.pack(side = TOP, fill = BOTH, expand = True)
+		plt.clf()
 
 class Cap(Frame):
 	def __init__(self, parent, controller):
@@ -358,13 +390,13 @@ class Cap(Frame):
 		self.num_meas_l.grid_forget()
 		self.avg_delay.grid_forget()
 		self.avg_delay_l.grid_forget()
-		self.apply_cal.grid_forget()
-		self.averaging.grid_forget()
-		self.caching.grid_forget()
-		self.viewf.grid_forget()
-		self.viewf_l.grid_forget()
-		self.attr.grid_forget()
-		self.attr_l.grid_forget()
+		# self.apply_cal.grid_forget()
+		# self.averaging.grid_forget()
+		# self.caching.grid_forget()
+		# self.viewf.grid_forget()
+		# self.viewf_l.grid_forget()
+		# self.attr.grid_forget()
+		# self.attr_l.grid_forget()
 		self.xlen.grid_forget()
 		self.xlen_l.grid_forget()
 		self.ylen.grid_forget()
@@ -414,9 +446,9 @@ class View(Frame):
 		Frame.__init__(self, parent)
 		self.controller = controller
 
-
+#main
 root = GUI()
 root.title('Terahertz Coded Aperture Imaging')
-root.geometry('600x500')
+root.geometry('700x600')
 root.resizable(0,0)
 root.mainloop()

@@ -111,7 +111,7 @@ class MaskSet(object):
     def frame(self):
         return np.array([k.flatten() for k in self.masks])
         
-        
+
 class Hadamard(MaskSet):
     '''
     a little redundant with encoder, need to edit code structure/hierarchy
@@ -238,12 +238,14 @@ class Decoder(object):
             else:
                 n = n[sorted(n.keys())[-1]]
             
-            s = n.s[:, 0, 0].reshape(-1, 1, 1) # pull out single complex number
+            s = n.s[:, 0, 0].reshape(-1, 1, 1) # pull out s complex number
             
             m = hex2mask(k, rank = rank)
             #copy mask allong frequency dimension
             m = expand_dims(m, 0).repeat(s.shape[0], 0) 
-            m = m*s
+            
+            m = m*s/sum(m*m)
+            
             M.append(m)
 
         M = array(M)

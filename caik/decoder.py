@@ -22,6 +22,7 @@ from scipy.linalg import hadamard
 
 
 import encoder
+import structure
 
 
 # conversion between masks representations
@@ -87,7 +88,7 @@ def mask2hex(mask):
 ## masks 
 class MaskSet(object):
     def __init__(self, rank, invert = False):
-        self.rank = int(rank)
+        self.rank =rank
         self.invert=False
     
     @property
@@ -104,23 +105,13 @@ class MaskSet(object):
     
     @property
     def hexs(self):
-        return [mask2hex(k) for k in self.masks]
+        return [mask2hex(k) for k in masks]
     
     @property
     def frame(self):
         return np.array([k.flatten() for k in self.masks])
         
-class FromHexs(MaskSet):
-    def __init__(self, hexs):
-        '''
-        '''
-        self.hexs = hexs
-        self.rank = log2(len(hexs))
         
-    @masks
-    def masks(self):
-        return [hex2mask(k) for k in self.hexs]
-            
 class Hadamard(MaskSet):
     '''
     a little redundant with encoder, need to edit code structure/hierarchy
@@ -186,11 +177,9 @@ class Random(MaskSet):
         return [randint(0,2,(dim)).reshape(res,res) for k in range(res**2)]
 
 
-
-
 ## decoder class
 class Decoder(object):
-    def __init__(self,dataset,  cal = None,  averaging = True, caching = True):
+    def __init__(self, img_data, cal = None,  averaging = True, caching = True):
         '''
         Simple Image Decoder 
         
@@ -205,24 +194,22 @@ class Decoder(object):
         d.image_interact() # images at all frequencies
         
         '''
-        self.dir_ = dir_
         self.cal = cal
         self.averaging = averaging
         self._da = None
         self.caching = caching
-        self.maskset = FromHexs(dataset.keys())
-        self.dataset = dataset
+        self.img_data = img_data
     
     @property
-    def hexs(self):
-        return self.maskset.hexs
+    def primary_hexs(self):
+        return self.img_data.data['primary'].keys()
     
     @property
     def res(self):
-        return self.maskset.res
+        return int(sqrt(len(self.primary_hexs)))
     @property
     def rank(self):
-        return self.maskset.rank
+        return int(log2(self.res))
     
     @property
     def da(self):
@@ -233,16 +220,16 @@ class Decoder(object):
         if self._da is not None and self.caching:
             return self._da
             
-        hexs = self.hexs
+        hexs = self.primary_hexs
         res = self.res
         rank = self.rank
         
         M = [] # will hold weighted masks
          
-        for k in dataset.keys():
-            #n = rf.ran(self.dir_ + '\\slide_' + str(k))
-            n = dataset[k]
-            
+        for k in hexs:
+            #n = rf.ran(self.img_data.data['primary'][k])
+            n = {self.img_data.image_name + ' ' + str(i) : self.img_data.data['primary'][k][i] for i in range (0, len(self.img_data.data['primary'][k]))}
+
             if self.cal is not None:
                 n = self.cal.apply_cal_to_list(n)
             
@@ -253,7 +240,7 @@ class Decoder(object):
             
             s = n.s[:, 0, 0].reshape(-1, 1, 1) # pull out single complex number
             
-            m = hex2mask(hexs[k], rank = rank)
+            m = hex2mask(k, rank = rank)
             #copy mask allong frequency dimension
             m = expand_dims(m, 0).repeat(s.shape[0], 0) 
             m = m*s
@@ -261,7 +248,7 @@ class Decoder(object):
 
         M = array(M)
         n.frequency.unit = 'ghz'
-        da = DataArray(M, coords = [('mask_hex', hexs.values()),
+        da = DataArray(M, coords = [('mask_hex', hexs),
                                   ('f_ghz', n.frequency.f_scaled),
                                   ('row', range(res)),
                                   ('col', range(res))])
@@ -282,7 +269,8 @@ class Decoder(object):
 
     @property
     def frequency(self):
-        return rf.ran(self.dir_ + '\\slide_' + self.hexs.keys()[0]).values()[0].frequency
+        #return rf.ran(self.img_data.data['primary'][self.primary_hexs[0]]).values()[0].frequency
+        return self.img_data.data['primary'].values()[0][0].frequency
     
     
     def image_at(self, f,  attr = 's_db'):

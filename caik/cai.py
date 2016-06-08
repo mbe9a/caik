@@ -45,8 +45,8 @@ class CAI(object):
 			else:
 				self.lia = dev.LIA5209()
 
-		else:
-			print "NOTE: GPIB instuments have not been initialized."
+		#else:
+			#print "NOTE: GPIB instuments have not been initialized."
 
 		if not os.path.exists('Data'):
 			os.mkdir('Data')

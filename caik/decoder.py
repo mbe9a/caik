@@ -241,10 +241,11 @@ class Decoder(object):
             s = n.s[:, 0, 0].reshape(-1, 1, 1) # pull out s complex number
             
             m = hex2mask(k, rank = rank)
+            m = m/sum(m*m)
             #copy mask allong frequency dimension
             m = expand_dims(m, 0).repeat(s.shape[0], 0) 
             
-            m = m*s/sum(m*m)
+            m = m*s
             
             M.append(m)
 

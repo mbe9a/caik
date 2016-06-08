@@ -87,7 +87,7 @@ def mask2hex(mask):
 ## masks 
 class MaskSet(object):
     def __init__(self, rank, invert = False):
-        self.rank =rank
+        self.rank = int(rank)
         self.invert=False
     
     @property
@@ -104,13 +104,23 @@ class MaskSet(object):
     
     @property
     def hexs(self):
-        return [mask2hex(k) for k in masks]
+        return [mask2hex(k) for k in self.masks]
     
     @property
     def frame(self):
         return np.array([k.flatten() for k in self.masks])
         
+class FromHexs(MaskSet):
+    def __init__(self, hexs):
+        '''
+        '''
+        self.hexs = hexs
+        self.rank = log2(len(hexs))
         
+    @masks
+    def masks(self):
+        return [hex2mask(k) for k in self.hexs]
+            
 class Hadamard(MaskSet):
     '''
     a little redundant with encoder, need to edit code structure/hierarchy
@@ -176,9 +186,11 @@ class Random(MaskSet):
         return [randint(0,2,(dim)).reshape(res,res) for k in range(res**2)]
 
 
+
+
 ## decoder class
 class Decoder(object):
-    def __init__(self, dir_, ppt, cal = None,  averaging = True, caching = True):
+    def __init__(self,dataset,  cal = None,  averaging = True, caching = True):
         '''
         Simple Image Decoder 
         
@@ -198,18 +210,19 @@ class Decoder(object):
         self.averaging = averaging
         self._da = None
         self.caching = caching
-        self.ppt = ppt
+        self.maskset = FromHexs(dataset.keys())
+        self.dataset = dataset
     
     @property
     def hexs(self):
-        return self.ppt.map
+        return self.maskset.hexs
     
     @property
     def res(self):
-        return int(sqrt(len(self.hexs)))
+        return self.maskset.res
     @property
     def rank(self):
-        return int(log2(self.res))
+        return self.maskset.rank
     
     @property
     def da(self):
@@ -226,8 +239,9 @@ class Decoder(object):
         
         M = [] # will hold weighted masks
          
-        for k in hexs.keys():
-            n = rf.ran(self.dir_ + '\\slide_' + str(k))
+        for k in dataset.keys():
+            #n = rf.ran(self.dir_ + '\\slide_' + str(k))
+            n = dataset[k]
             
             if self.cal is not None:
                 n = self.cal.apply_cal_to_list(n)

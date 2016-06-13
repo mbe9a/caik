@@ -221,31 +221,38 @@ class Decoder(object):
             return self._da
             
         hexs = self.primary_hexs
+        #print hexs
         res = self.res
+        #print res
         rank = self.rank
+        #print rank
         
         M = [] # will hold weighted masks
          
         for k in hexs:
             #n = rf.ran(self.img_data.data['primary'][k])
-            n = {self.img_data.image_name + ' ' + str(i) : self.img_data.data['primary'][k][i] for i in range (0, len(self.img_data.data['primary'][k]))}
-
+            n = {self.img_data.data['primary'][k][i].name[:-4] : self.img_data.data['primary'][k][i] for i in range (0, len(self.img_data.data['primary'][k]))}
+            #print n
             if self.cal is not None:
                 n = self.cal.apply_cal_to_list(n)
-            
+                #print n
             if self.averaging:
                 n = rf.average(n.values())
+                #print n.__getattribute__('s_db')[0,...]
             else:
                 n = n[sorted(n.keys())[-1]]
             
             s = n.s[:, 0, 0].reshape(-1, 1, 1) # pull out s complex number
             
             m = hex2mask(k, rank = rank)
-            m = m/sum(m*m)
+            #m = m/sum(m*m)
+            #print m
             #copy mask allong frequency dimension
             m = expand_dims(m, 0).repeat(s.shape[0], 0) 
+            #print m
             
             m = m*s
+            #print m
             
             M.append(m)
 
@@ -268,6 +275,7 @@ class Decoder(object):
         the ports are the pixels. nuff said
         '''
         s = self.da.mean(dim = 'mask_hex').data
+        #print s
         return rf.Network(s = s, z0 = 1, frequency = self.frequency, *args, **kw)
 
     @property

@@ -233,35 +233,25 @@ class CAI(object):
 		ppt.start_pres()
 		raw_input('Press Enter to Continue...')
 
-		#directory_p = 'Data\\hadamard\\' + hadamard.name + '\\primary'
-		#if not os.path.exists(directory_p):
-			#os.mkdir('Data\\hadamard\\' + hadamard.name)
-			#os.mkdir(directory_p)
-
 		#take primary data
 		if hadamard.variant == 'primary' or hadmard.variant == 'both':
 			for x in range (0, hadamard.size):
 				ppt.show_slide(x + 2)
 				time.sleep(delay)
-				#os.mkdir(directory_p + '\\slide_' + str(x + 2))
 				measurement_list = []
 				for y in range (0, measurements):
-					measurement_list.append(self.zva.get_network(name = 'measurement_' + str(y) + '.s1p'))#.write_touchstone(dir = directory_p + '\\slide_' + str(x + 2) + '\\')
+					measurement_list.append(self.zva.get_network(name = 'measurement_' + str(y) + '.s1p'))
 					time.sleep(averaging_delay)
 				data.add_primary_data(decoder.mask2hex(hadamard.primary_masks[x]), measurement_list)
-		#directory_i = 'Data\\hadamard\\' + hadamard.name + '\\inverse'
-		#if not os.path.exists(directory_i):
-			#os.mkdir(directory_i)
 
 		#take inverse data
 		if hadamard.variant == 'inverse' or hadamard.variant == 'both':
 			for x in range (0, hadamard.size):
 				ppt.show_slide(hadamard.size + x + 2)
 				time.sleep(delay)
-				#os.mkdir(directory_i + '\\slide_' + str(hadamard.size + x + 2))
 				measurement_list = []
 				for y in range (0, measurements):
-					measurement_list.append(self.zva.get_network(name = 'measurement_' + str(y) + '.s1p'))#.write_touchstone(dir = directory_i + '\\slide_' + str(hadamard.size + x + 2) + '\\')
+					measurement_list.append(self.zva.get_network(name = 'measurement_' + str(y) + '.s1p'))
 					time.sleep(averaging_delay)
 				data.add_inverse_data(decoder.mask2hex(hadamard.inverse_masks[x]), measurement_list)
 
@@ -270,11 +260,34 @@ class CAI(object):
 		'''
 		TO DO: implement variant options in decoder
 		'''
-		#dec = decoder.Decoder(directory_p, ppt, cal = cal, averaging = averaging, caching = caching)
-		#dec.image_at(f, attr = attr)
-		#savefig('Data\\hadamard\\' + hadamard.name + '\\image')
-
 		return data
+
+	def take_hadamard_cal_set(self, hadamard, delay = 1):
+		cals = structure.cal_set(hadamard)
+
+		#if take_data:
+		ppt = projector.PPT(hadamard)
+		ppt.start_pres()
+		raw_input('Press Enter to Continue...')
+
+		#take primary data
+		if hadamard.variant == 'primary' or hadmard.variant == 'both':
+			for x in range (0, hadamard.size):
+				ppt.show_slide(x + 2)
+				time.sleep(delay)
+				cals.data['primary'][decoder.mask2hex(hadamard.primary_masks[x])] = self.take_simple_cal()
+
+		#take inverse data
+		if hadamard.variant == 'inverse' or hadamard.variant == 'both':
+			for x in range (0, hadamard.size):
+				ppt.show_slide(hadamard.size + x + 2)
+				time.sleep(delay)
+				cals.data['primary'][mask2hex(hadamard.inverse_masks[x])] = self.take_simple_cal()
+
+		projector.kill_pptx()
+
+		return cals
+
 
 	def take_bar_image(self):
 		raise NotImplementedError

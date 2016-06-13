@@ -179,7 +179,7 @@ class Random(MaskSet):
 
 ## decoder class
 class Decoder(object):
-    def __init__(self, img_data, cal = None,  averaging = True, caching = True):
+    def __init__(self, img_data, cal = None,  cal_set = None, averaging = True, caching = True):
         '''
         Simple Image Decoder 
         
@@ -194,6 +194,7 @@ class Decoder(object):
         d.image_interact() # images at all frequencies
         
         '''
+        self.cal_set = cal_set
         self.cal = cal
         self.averaging = averaging
         self._da = None
@@ -236,6 +237,9 @@ class Decoder(object):
             if self.cal is not None:
                 n = self.cal.apply_cal_to_list(n)
                 #print n
+            elif self.cal_set is not None:
+                n = self.cal_set.data['primary'][k].apply_cal_to_list(n)
+
             if self.averaging:
                 n = rf.average(n.values())
                 #print n.__getattribute__('s_db')[0,...]

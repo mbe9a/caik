@@ -7,6 +7,16 @@ import decoder
 import os
 import cPickle as pickle
 
+class cal_set(object):
+	'''
+	contains cals for each hadamard mask of a given rank
+	'''
+	def __init__(self, kind):
+		self.kind = kind
+		self.data = {'primary' : {decoder.mask2hex(mask) : None for mask in kind.primary_masks}, 'inverse' : {decoder.mask2hex(mask) : None for mask in kind.inverse_masks}}
+
+	def write_pickle(self, base_dir = os.getcwd()):
+		pickle.dump(self, open(base_dir + '/' + self.kind.name + '_cal_set.p', 'wb'))
 
 class image_data(object):
 	'''

@@ -11,6 +11,7 @@ import ttk
 import tkFileDialog
 import matplotlib.pyplot as plt
 from PIL import Image, ImageTk
+import time
 #caik imports
 import cai
 import projector as pro
@@ -30,6 +31,7 @@ class GUI(Tk):
 		self.cal_set = None
 		self.kind = None
 		self.name = None
+		self.data = None
 
 		container = Frame(self)
 
@@ -50,7 +52,7 @@ class GUI(Tk):
 		Button(self.sidebar, text = 'Control', command = lambda: self.show_frame('Control')).pack(fill = 'both', padx = 2, pady = 2)
 		Button(self.sidebar, text = 'Calibrate', command = lambda: self.show_frame('Cal')).pack(fill = 'both', padx = 2, pady = 2)
 		Button(self.sidebar, text = 'Capture', command = lambda: self.show_frame('Cap')).pack(fill = 'both', padx = 2, pady = 2)
-		Button(self.sidebar, text = 'View', command = lambda: self.show_frame('View')).pack(fill = 'both', padx = 2, pady = 2)
+		Button(self.sidebar, text = 'Analyze', command = lambda: self.show_frame('Analyze')).pack(fill = 'both', padx = 2, pady = 2)
 		Button(self.sidebar, text = 'Exit').pack(side = BOTTOM, fill = 'both', padx = 2, pady = 2)
 		Button(self.sidebar, text = 'Save').pack(side = BOTTOM, fill = 'both', padx = 2, pady = 2)
 
@@ -232,7 +234,7 @@ class Cal(Frame):
 		self.scale_l = Label(self.top_frame, text = "Scale")
 		self.scale = Entry(self.top_frame, textvariable = self.scale_c)
 
-		Button(self.top_frame, text = 'Take Calibration', command = self.calset).pack(side = LEFT, padx = 5, pady = 5)
+		Button(self.top_frame, text = 'Take Calibration', command = self.calibrate).pack(side = LEFT, padx = 5, pady = 5)
 		Checkbutton(self.top_frame, text = 'Load/Match', variable = self.match_load).pack(side = LEFT)
 		self.scale_l.pack(side = LEFT, padx = 5)
 		self.scale.pack(side = LEFT, padx = 5)
@@ -255,7 +257,8 @@ class Cal(Frame):
 
 		if hasattr(self.controller.cai, 'esp'):
 			self.controller.status.config(text =  'Calibrating...')
-			self.controller.cai.esp.current_axis = 2
+			time.sleep(1)
+			self.controller.cai.esp.current_axis = 1
 			self.controller.cal = self.controller.cai.take_simple_cal(self.match_load.get())
 			self.show_cal()
 			self.controller.status.config(text =  'Calibration complete.')
@@ -264,10 +267,11 @@ class Cal(Frame):
 		self.controller.status.config(text =  'Calibration failed. One or more instruments not initialized.')
 
 	def calset(self):
-		self.controller.kind = pro.hadamard(self.scale, self.rank)
+		self.controller.kind = pro.hadamard(self.scale_c.get(), self.rank_c.get())
 		self.controller.cal_set = self.controller.cai.take_hadamard_cal_set(self.controller.kind)
 
 	def show_cal(self, attr='s_smith', show_legend=False,**kwargs):
+		
 		self.controller.cal.plot_caled_ntwks()
 		plt.savefig('cal_smith.jpg')
 		image = Image.open("cal_smith.jpg")
@@ -287,12 +291,19 @@ class Cap(Frame):
 		self.params = Frame(self, bg = 'blue')
 
 		#hadamard interface
+		self.rank_c = IntVar()
+		self.rank_l = Label(self.params, text = 'Rank')
+		self.rank = Entry(self.params, textvariable = self.rank_c)
+		
+		self.scale_c = IntVar()
+		self.scale_l = Label(self.params, text = "Scale")
+		self.scale = Entry(self.params, textvariable = self.scale_c)
 
 		self.take_c = BooleanVar()
 		self.take_c.set(True)
 		self.take = Checkbutton(self.params, text = 'Take', variable = self.take_c)
 
- 		self.mask_delay_c = IntVar()
+ 		self.mask_delay_c = DoubleVar()
  		self.mask_delay_c.set(1)
 		self.mask_delay_l = Label(self.params, text = 'Delay between masks')
 		self.mask_delay = Entry(self.params, textvariable = self.mask_delay_c)
@@ -304,7 +315,7 @@ class Cap(Frame):
  		self.num_meas_l = Label(self.params, text = 'Number of measurements per mask')
 		self.num_meas = Entry(self.params, textvariable = self.num_meas_c)
 
- 		self.avg_delay_c = IntVar()
+ 		self.avg_delay_c = DoubleVar()
  		self.avg_delay_c.set(0)
  		self.avg_delay_l = Label(self.params, text = 'Delay between measurements')
 		self.avg_delay = Entry(self.params, textvariable = self.avg_delay_c)
@@ -361,7 +372,7 @@ class Cap(Frame):
 		Label(self.bot_frame, text = 'Name').pack(side = LEFT, padx = 5, pady = 5)
 		Entry(self.bot_frame, textvariable = self.name_c).pack(side = LEFT, pady = 5)
 
-		self.var_c = IntVar()
+		self.var_c = StringVar()
 		self.var_c.set('primary')
 		#Label(self.bot_frame, text = 'Mask variation').pack(side = LEFT)
 		OptionMenu(self.bot_frame, self.var_c, 'primary', 'inverse', 'both').pack(side = LEFT, padx = 5, pady = 5)
@@ -389,23 +400,25 @@ class Cap(Frame):
 			return
 
 	def image(self):
-		f = self.var_c.get()
-		
-		if f is 'hadamard':
-			self.controller.kind = pro.hadamard(rank = self.rank_c.get(), scale = self.scale_c.get(), varient = self.var_c.get())
-			self.controller.cai.hadamard_image(self.controller.kind)
+		f = self.method_c.get()
+			
+		if f == 'hadamard':
+			print 0
+			self.controller.kind = pro.hadamard(rank = self.rank_c.get(), scale = self.scale_c.get(), variant = self.var_c.get())
+			self.controller.data = self.controller.cai.hadamard_image(self.controller.kind, self.name_c.get(), delay = self.mask_delay_c.get(),
+			 measurements = self.num_meas_c.get(), averaging_delay = self.avg_delay_c.get())
 
-		if f is 'raster':
+		if f == 'raster':
 			self.controller.kind = pro.raster()
 
-		if f is 'bar':
+		if f == 'bar':
 			self.controller.kind = pro.bar()
 
 	def clear_params(self):
-		# self.scale.grid_forget()
-		# self.scale_l.grid_forget()
-		# self.rank.grid_forget()
-		# self.rank_l.grid_forget()
+		self.scale.grid_forget()
+		self.scale_l.grid_forget()
+		self.rank.grid_forget()
+		self.rank_l.grid_forget()
 		self.take.grid_forget()
 		self.mask_delay.grid_forget()
 		self.mask_delay_l.grid_forget()
@@ -428,11 +441,11 @@ class Cap(Frame):
 
 	def pack_hadamard(self):
 
-		#self.scale_l.grid(row = 0, column = 0, padx = 2, pady = 2, sticky = E)
-		#self.scale.grid(row = 0, column = 1, padx = 2, pady = 2)
+		self.scale_l.grid(row = 0, column = 0, padx = 2, pady = 2, sticky = E)
+		self.scale.grid(row = 0, column = 1, padx = 2, pady = 2)
 		
-		# self.rank_l.grid(row = 1, column = 0, sticky = E, padx = 2, pady = 2)
-		# self.rank.grid(row = 1, column = 1, padx = 2, pady = 2)
+		self.rank_l.grid(row = 1, column = 0, sticky = E, padx = 2, pady = 2)
+		self.rank.grid(row = 1, column = 1, padx = 2, pady = 2)
 		
 		self.mask_delay_l.grid(row = 2, column = 0, sticky = E, padx = 2, pady = 2)
 		self.mask_delay.grid(row = 2, column = 1, padx = 2, pady = 2)
@@ -469,6 +482,35 @@ class Analyze(Frame):
 
 		Frame.__init__(self, parent)
 		self.controller = controller
+
+		self.dec = None
+
+		self.top_frame = Frame(self, bg = 'green')
+
+		Button(self.top_frame, text = 'Decode Image', command = self.show_img).pack(side = LEFT, padx = 5, pady = 5)
+		#Checkbutton(self.top_frame, text = 'Load/Match', variable = self.match_load).pack(side = LEFT)
+		self.top_frame.pack(side = TOP, fill = X)
+
+		self.chart = Frame(self, bg = 'blue')
+		self.chart.pack(side = TOP, fill = BOTH, expand = True)
+		self.chart_img = Label(self.chart)
+
+	def show_img(self):
+		
+		self.dec = deco.Decoder(self.controller.data, self.controller.cal)
+		self.dec.image_at('634ghz', attr = 's_db')
+		plt.savefig('current.jpg')
+		image = Image.open("current.jpg")
+		photo = ImageTk.PhotoImage(image)
+
+		self.chart_img.pack_forget()
+		self.chart_img = Label(self.chart,image = photo)
+		self.chart_img.image = photo
+		self.chart_img.pack(side = TOP, fill = BOTH, expand = True)
+		plt.clf()
+
+
+
 
 #main
 root = GUI()

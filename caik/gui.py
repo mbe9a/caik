@@ -21,21 +21,20 @@ import instruments as inst
 import skrf as rf
 
 
-
-
 class GUI(Tk):
 	def __init__(self, *args, **kwargs):
 		Tk.__init__(self, *args, **kwargs)
 
 		self.cai = cai.CAI()
 		self.cal = None
+		self.cal_set = None
 		self.kind = None
 		self.name = None
 
 		container = Frame(self)
 
 		self.frames = {}
-		for F in (Home, Control, Cal, Cap, View):
+		for F in (Home, Control, Cal, Cap, Analyze):
 			page_name = F.__name__
 			frame = F(container, self)
 			self.frames[page_name] = frame
@@ -74,7 +73,7 @@ class GUI(Tk):
 		self.bind_all('<Control-Alt-o>', self.open_cal)
 		self.filemenu.add_command(label = 'Save Cal...', command = self.save_cal)
 		self.bind_all('<Control-Alt-s>', self.save_cal)
-		self.filemenu.add_separator()
+		#self.filemenu.add_separator()
 		self.menubar.add_cascade(label = 'File', menu = self.filemenu)
 	
 		self.config(menu=self.menubar)
@@ -98,6 +97,20 @@ class GUI(Tk):
 			return
 		self.cal.write(f)
 		self.status.config(text = 'Calibration saved successfully')
+
+	def open_file(self, event = '<Control-o>'):
+		return 0
+		f = tkFileDialog.askopenfilename(filetypes = [('Calibration', '.cal')])
+		if f is None:
+			print('Could not open file.')
+			return
+		self.cal = rf.read(f)
+
+	def save_file(self, event = '<Control-o>'):
+		return 0
+
+	def save_as_file(self, event = '<Control-Shift-s>'):
+		return 0
 
 	def show_frame(self, page_name):
 		frame = self.frames[page_name]
@@ -211,8 +224,20 @@ class Cal(Frame):
 		self.match_load = IntVar()
 		
 		self.top_frame = Frame(self, bg = 'green')
-		Button(self.top_frame, text = 'Take Calibration', command = self.calibrate).pack(side = LEFT, padx = 5, pady = 5)
+
+		self.rank_c = IntVar()
+		self.rank_l = Label(self.top_frame, text = 'Rank')
+		self.rank = Entry(self.top_frame, textvariable = self.rank_c)
+		self.scale_c = IntVar()
+		self.scale_l = Label(self.top_frame, text = "Scale")
+		self.scale = Entry(self.top_frame, textvariable = self.scale_c)
+
+		Button(self.top_frame, text = 'Take Calibration', command = self.calset).pack(side = LEFT, padx = 5, pady = 5)
 		Checkbutton(self.top_frame, text = 'Load/Match', variable = self.match_load).pack(side = LEFT)
+		self.scale_l.pack(side = LEFT, padx = 5)
+		self.scale.pack(side = LEFT, padx = 5)
+		self.rank_l.pack(side = LEFT, padx = 5)
+		self.rank.pack(side = LEFT, padx = 5)
 		self.top_frame.pack(side = TOP, fill = X)
 
 		self.smith = Frame(self, bg = 'blue')
@@ -238,6 +263,10 @@ class Cal(Frame):
 		
 		self.controller.status.config(text =  'Calibration failed. One or more instruments not initialized.')
 
+	def calset(self):
+		self.controller.kind = pro.hadamard(self.scale, self.rank)
+		self.controller.cal_set = self.controller.cai.take_hadamard_cal_set(self.controller.kind)
+
 	def show_cal(self, attr='s_smith', show_legend=False,**kwargs):
 		self.controller.cal.plot_caled_ntwks()
 		plt.savefig('cal_smith.jpg')
@@ -258,13 +287,6 @@ class Cap(Frame):
 		self.params = Frame(self, bg = 'blue')
 
 		#hadamard interface
-		self.scale_c = IntVar()
-		self.scale_l = Label(self.params, text = "Scale")
-		self.scale = Entry(self.params, textvariable = self.scale_c)
-
-		self.rank_c = IntVar()
-		self.rank_l = Label(self.params, text = 'Rank')
-		self.rank = Entry(self.params, textvariable = self.rank_c)
 
 		self.take_c = BooleanVar()
 		self.take_c.set(True)
@@ -380,10 +402,10 @@ class Cap(Frame):
 			self.controller.kind = pro.bar()
 
 	def clear_params(self):
-		self.scale.grid_forget()
-		self.scale_l.grid_forget()
-		self.rank.grid_forget()
-		self.rank_l.grid_forget()
+		# self.scale.grid_forget()
+		# self.scale_l.grid_forget()
+		# self.rank.grid_forget()
+		# self.rank_l.grid_forget()
 		self.take.grid_forget()
 		self.mask_delay.grid_forget()
 		self.mask_delay_l.grid_forget()
@@ -406,11 +428,11 @@ class Cap(Frame):
 
 	def pack_hadamard(self):
 
-		self.scale_l.grid(row = 0, column = 0, padx = 2, pady = 2, sticky = E)
-		self.scale.grid(row = 0, column = 1, padx = 2, pady = 2)
+		#self.scale_l.grid(row = 0, column = 0, padx = 2, pady = 2, sticky = E)
+		#self.scale.grid(row = 0, column = 1, padx = 2, pady = 2)
 		
-		self.rank_l.grid(row = 1, column = 0, sticky = E, padx = 2, pady = 2)
-		self.rank.grid(row = 1, column = 1, padx = 2, pady = 2)
+		# self.rank_l.grid(row = 1, column = 0, sticky = E, padx = 2, pady = 2)
+		# self.rank.grid(row = 1, column = 1, padx = 2, pady = 2)
 		
 		self.mask_delay_l.grid(row = 2, column = 0, sticky = E, padx = 2, pady = 2)
 		self.mask_delay.grid(row = 2, column = 1, padx = 2, pady = 2)
@@ -442,7 +464,7 @@ class Cap(Frame):
 		return 0
 
 
-class View(Frame):
+class Analyze(Frame):
 	def __init__(self, parent, controller):
 
 		Frame.__init__(self, parent)

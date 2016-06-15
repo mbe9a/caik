@@ -104,6 +104,15 @@ class MaskSet(object):
         raise NotImplementedError
     
     @property
+    def primary_masks(self):
+        self.invert = False
+        return self.masks
+    @property
+    def inverse_masks(self):
+        self.invert = True
+        return self.masks
+
+    @property
     def hexs(self):
         return [mask2hex(k) for k in masks]
     
@@ -121,12 +130,13 @@ class Hadamard(MaskSet):
         return encoder.Hadamard(self.rank)
 
     @property
-    def primary_masks(self):
-        return self.hadamard_encoder.primary_masks
+    def masks(self):
+        if self.invert:
+            return self.hadamard_encoder.inverse_masks
+        else:
+            return self.hadamard_encoder.primary_masks
 
-    @property
-    def inverse_masks(self):
-        return self.hadamard_encoder.inverse_masks
+    
     
 
 class Raster(MaskSet):

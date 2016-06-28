@@ -107,6 +107,8 @@ class MaskSet(object):
     def primary_masks(self):
         self.invert = False
         return self.masks
+
+    #TO DO: fix this
     @property
     def inverse_masks(self):
         self.invert = True

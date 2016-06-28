@@ -142,6 +142,10 @@ class walsh(object):
 		return (2**self.rank)**2
 
 	@property
+	def primary_masks(self):
+		return decoder.Walsh(self.rank).primary_masks
+
+	@property
 	def name(self):
 		return 'walsh_' + self.variant + '_' + str(self.rank)
 	
@@ -374,8 +378,58 @@ class ppt_generator(object):
 		Presentation.SaveAs(self.base_dir + '\\Slide Shows\\hadamard\\hadamard_' +  hadamard.variant + '_' + str(hadamard.rank) + '_' + str(hadamard.scale) + '\\hadamard_' + hadamard.variant + '_' + str(hadamard.rank) + '_' + str(hadamard.scale))
 		os.system("taskkill /im powerpnt.exe /f")
 
-	def gen_random_set(self, random):
-		raise NotImplementedError
+	def gen_walsh_set(self, walsh, canvas_size = 1024):
+		scale = walsh.scale/100.
+		raw_masks = walsh.primary_masks
+		canvas_size = 1024
+		size = 2**walsh.rank
+		total = size**2 + 1
+
+		Application = win32com.client.Dispatch('PowerPoint.Application')
+		Presentation = Application.Presentations.Add()
+		height = Presentation.PageSetup.SlideHeight
+		width = Presentation.PageSetup.SlideWidth
+		x_inc = height/size*scale
+		y_inc = height/size*scale
+
+		#TO DO: implement variant
+
+		name = walsh.path
+		if not os.path.exists(name):
+		    os.mkdir(name)
+
+		with open(name + '\\map.csv', 'wb') as outfile:
+			fieldnames = ['slide', 'mask in hex']
+			writer = csv.DictWriter(outfile, fieldnames = fieldnames)
+			writer.writeheader()
+			count = 0
+
+			for k in range ((len(raw_masks)) - 1, -1, -1):
+				#make a slide
+				slide = Presentation.Slides.Add(1, 12)
+				#black background
+				background = slide.ColorScheme.Colors(1).RGB = 0
+
+				for x in range (0, 2**walsh.rank):
+					for y in range(0, 2**walsh.rank):
+						if raw_masks[k][x][y] == 1:
+							pixel = slide.Shapes.AddShape(msoShapeRectangle, (width - height*scale)/2 + x*x_inc, (height - height*scale)/2 + y*y_inc, x_inc, y_inc)
+							pixel.Fill.ForeColor.RGB = rgb(255, 255, 255)
+							pixel.Line.ForeColor.RGB = rgb(255, 255, 255)
+
+				#write to csv map file (for decode)
+				writer.writerow({'slide': total - count, 'mask in hex': decoder.mask2hex(raw_masks[k])})
+
+				#add mask image to slide
+				count += 1
+
+		#make last (first) slide
+		slide = Presentation.Slides.Add(1, 12)
+		#black background
+		background = slide.ColorScheme.Colors(1).RGB = 0
+		#save and exit
+		Presentation.SaveAs(walsh.path + '\\' + walsh.name)
+		os.system("taskkill /im powerpnt.exe /f")
 
 	def gen_walsh_set(self, walsh):
 		raise NotImplementedError

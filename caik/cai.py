@@ -219,7 +219,7 @@ class CAI(object):
 					return (x, y)
 
 	#routine to take hadamard image
-	def hadamard_image(self, hadamard, name, delay = 1, measurements = 1, averaging_delay = 0):
+	def hadamard_image(self, hadamard, name, delay = 1, measurements = 1, averaging_delay = 0, duty_cycle = False):
 		#take_data = True, duty_cycle = False, cal = None, averaging = True, caching = True, f = '634ghz', attr = 's_db'
 		'''
 		TO DO: implement modifiable duty_cyce
@@ -231,11 +231,15 @@ class CAI(object):
 		#if take_data:
 		ppt = projector.PPT(hadamard)
 		ppt.start_pres()
-		raw_input('Press Enter to Continue...')
+		time.sleep(5)
+
+		start_time = 0
+		elapsed_time = 0
 
 		#take primary data
 		if hadamard.variant == 'primary' or hadmard.variant == 'both':
 			for x in range (0, hadamard.size):
+				start_time = time.time()
 				ppt.show_slide(x + 2)
 				time.sleep(delay)
 				measurement_list = []
@@ -243,10 +247,15 @@ class CAI(object):
 					measurement_list.append(self.zva.get_network(name = 'measurement_' + str(y) + '.s1p'))
 					time.sleep(averaging_delay)
 				data.add_primary_data(decoder.mask2hex(hadamard.primary_masks[x]), measurement_list)
+				elapsed_time = time.time() - start_time
+				if duty_cycle:
+					ppt.first_slide()
+					time.sleep(elapsed_time)
 
 		#take inverse data
 		if hadamard.variant == 'inverse' or hadamard.variant == 'both':
 			for x in range (0, hadamard.size):
+				start_time = time.time()
 				ppt.show_slide(hadamard.size + x + 2)
 				time.sleep(delay)
 				measurement_list = []
@@ -254,6 +263,10 @@ class CAI(object):
 					measurement_list.append(self.zva.get_network(name = 'measurement_' + str(y) + '.s1p'))
 					time.sleep(averaging_delay)
 				data.add_inverse_data(decoder.mask2hex(hadamard.inverse_masks[x]), measurement_list)
+				elapsed_time = time.time() - start_time
+				if duty_cycle:
+					ppt.first_slide()
+					time.sleep(elapsed_time)
 
 		projector.kill_pptx()
 
@@ -262,7 +275,7 @@ class CAI(object):
 		'''
 		return data
 
-	def take_hadamard_cal_set(self, hadamard, delay = 1):
+	def take_hadamard_cal_set(self, hadamard, delay = 0, duty_cycle = False):
 		cals = structure.cal_set(hadamard)
 
 		#if take_data:
@@ -270,19 +283,32 @@ class CAI(object):
 		ppt.start_pres()
 		raw_input('Press Enter to Continue...')
 
+		start_time = 0
+		elapsed_time = 0
+
 		#take primary data
 		if hadamard.variant == 'primary' or hadmard.variant == 'both':
 			for x in range (0, hadamard.size):
+				start_time = time.time()
 				ppt.show_slide(x + 2)
 				time.sleep(delay)
 				cals.data['primary'][decoder.mask2hex(hadamard.primary_masks[x])] = self.take_simple_cal()
+				elapsed_time = time.time() - start_time
+				if duty_cycle:
+					ppt.first_slide()
+					time.sleep(elapsed_time)
 
 		#take inverse data
 		if hadamard.variant == 'inverse' or hadamard.variant == 'both':
 			for x in range (0, hadamard.size):
+				start_time = time.time()
 				ppt.show_slide(hadamard.size + x + 2)
 				time.sleep(delay)
 				cals.data['primary'][mask2hex(hadamard.inverse_masks[x])] = self.take_simple_cal()
+				elapsed_time = time.time() - start_time
+				if duty_cycle:
+					ppt.first_slide()
+					time.sleep(elapsed_time)
 
 		projector.kill_pptx()
 
@@ -295,8 +321,46 @@ class CAI(object):
 	def take_raster_image(self):
 		raise NotImplementedError
 
-	def take_walsh_image(self):
-		raise NotImplementedError
+	def walsh_image(self, walsh, name, delay = 1, measurements = 1, averaging_delay = 0):
+		'''
+		TO DO: implement variant and duty cycle stuff
+		'''
+		data = structure.image_data(walsh, name)
+		ppt = projector.PPT(walsh)
+		ppt.start_pres()
+		time.sleep(5)
+
+		for x in range (0, walsh.size):
+			ppt.show_slide(x + 2)
+			time.sleep(delay)
+			measurement_list = []
+			for y in range (0, measurements):
+				measurement_list.append(self.zva.get_network(name = 'measurement_' + str(y) + '.s1p'))
+				time.sleep(averaging_delay)
+			data.add_primary_data(decoder.mask2hex(walsh.primary_masks[x]), measurement_list)
+
+			projector.kill_pptx()
+
+		return data
+
+	def take_walsh_cal_set(self, walsh, delay = 0):
+		'''
+		TO DO: implement duty cycle stuff and variant stuff
+		'''
+		cals = structure.cal_set(walsh)
+
+		ppt = projector.PPT(walsh)
+		ppt.start_pres()
+		time.sleep(5)
+
+		for x in range (0, walsh.size):
+			ppt.show_slide(x + 2)
+			time.sleep(delay)
+			cals.data['primary'][decoder.mask2hex(walsh.primary_masks[x])] = self.take_simple_cal()
+
+		projector.kill_pptx()
+
+		return cals
 
 	def take_random_image(self):
 		raise NotImplementedError

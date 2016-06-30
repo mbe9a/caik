@@ -15,7 +15,7 @@ class cal_set(object):
 		self.kind = kind
 		self.data = {'primary' : {decoder.mask2hex(mask) : None for mask in kind.primary_masks}, 'inverse' : {decoder.mask2hex(mask) : None for mask in kind.inverse_masks}}
 
-	def write_pickle(self, base_dir = os.getcwd()):
+	def write_pickle(self, base_dir = os.getcwd):
 		pickle.dump(self, open(base_dir + '/' + self.kind.name + '_cal_set.p', 'wb'))
 
 class image_data(object):
@@ -78,8 +78,9 @@ class data_structure(object):
 	def write_pickle(self, name, base_dir = os.getcwd()):
 		pickle.dump(self, open(base_dir + '/' + name + '.p', 'wb'))
 
-def read(name, base_dir = os.getcwd()):
-	return pickle.load(open(base_dir + '/' + name + '.p', 'rb'))
+def read(name, base_dir = ''):
+	base_dir = base_dir + '/'
+	return pickle.load(open(base_dir + name + '.p', 'rb'))
 
 
 	

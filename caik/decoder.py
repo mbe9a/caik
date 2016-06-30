@@ -132,11 +132,12 @@ class Hadamard(MaskSet):
     @property
     def masks(self):
         if self.invert:
-            return self.hadamard_encoder.inverse_masks
+            m= self.hadamard_encoder.inverse_masks
         else:
-            return self.hadamard_encoder.primary_masks
-
-    
+            m= self.hadamard_encoder.primary_masks
+            
+        res = self.res
+        return [m[k].reshape(res,res) for k in range(res**2)]
     
 
 class Raster(MaskSet):

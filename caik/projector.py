@@ -145,13 +145,18 @@ class walsh(object):
 	def primary_masks(self):
 		return decoder.Walsh(self.rank).primary_masks
 
+	#fix inverse masks
+	@property
+	def inverse_masks(self):
+		return decoder.Walsh(self.rank).primary_masks
+
 	@property
 	def name(self):
-		return 'walsh_' + self.variant + '_' + str(self.rank)
+		return 'walsh_' + self.variant + '_' + str(self.rank) + '_' + str(self.scale)
 	
 	@property
 	def directory(self):
-		return self.base_dir + '\\Slide Shows\\walsh'
+		return self.base_dir + '\\Slide Shows\\walsh\\' + self.name
 
 	@property
 	def path(self):
@@ -287,7 +292,7 @@ class ppt_generator(object):
 						(height - height*scale)/2 + y*y_inc, x_inc, y_inc)
 					pixel.Fill.ForeColor.RGB = rgb(255, 255, 255)
 		slide = Presentation.Slides.Add(1, 12)
-		background = slide.ColorScheme.Colors(1).rgb = 0
+		background = slide.ColorScheme.Colors(1).RGB = 0
 		Presentation.SaveAs(self.base_dir + '\\Slide Shows\\raster\\raster_' + raster.variant + '_' + str(raster.x_parts) + '_' + str(raster.y_parts) + '_' + str(raster.scale))
 		os.system("taskkill /im powerpnt.exe /f")
 
@@ -394,7 +399,7 @@ class ppt_generator(object):
 
 		#TO DO: implement variant
 
-		name = walsh.path
+		name = walsh.directory
 		if not os.path.exists(name):
 		    os.mkdir(name)
 
@@ -428,11 +433,8 @@ class ppt_generator(object):
 		#black background
 		background = slide.ColorScheme.Colors(1).RGB = 0
 		#save and exit
-		Presentation.SaveAs(walsh.path + '\\' + walsh.name)
+		Presentation.SaveAs(walsh.path)
 		os.system("taskkill /im powerpnt.exe /f")
-
-	def gen_walsh_set(self, walsh):
-		raise NotImplementedError
 
 
 #kill the ppt app

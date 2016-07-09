@@ -328,6 +328,7 @@ class CAI(object):
 		data = structure.image_data(walsh, name)
 		ppt = projector.PPT(walsh)
 		ppt.start_pres()
+		ppt.first_slide()
 		time.sleep(5)
 
 		for x in range (0, walsh.size):
@@ -339,7 +340,7 @@ class CAI(object):
 				time.sleep(averaging_delay)
 			data.add_primary_data(decoder.mask2hex(walsh.primary_masks[x]), measurement_list)
 
-			projector.kill_pptx()
+		projector.kill_pptx()
 
 		return data
 

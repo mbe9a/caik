@@ -336,9 +336,9 @@ class Decoder(object):
     def frequency(self):
         #return rf.ran(self.img_data.data['primary'][self.primary_hexs[0]]).values()[0].frequency
         return self.img_data.data['primary'].values()[0][0].frequency
+
     
-    
-    def image_at(self, f,  attr = 's_db'):
+    def image_at(self, f,  attr = 's_db', dead = False):
         '''
         Image at `f` for a given scalar `attr` of a skrf.Network
         
@@ -348,6 +348,13 @@ class Decoder(object):
         '''
         n = self.ntwk[str(f)]
         x = n.__getattribute__(attr)[0,...]
+        if dead:
+            temp = 0
+            for k in range(0, self.res):
+                for j in range(0, self.res):
+                    if x[j][k] < temp:
+                        temp = x[j][k]
+        x[0][0] = temp
         matshow(x)
         colorbar()
         grid(0)

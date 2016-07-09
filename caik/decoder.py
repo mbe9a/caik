@@ -90,7 +90,7 @@ class MaskSet(object):
     def __init__(self, rank, invert = False):
         self.rank =rank
         self.invert=False
-    
+        
     @property
     def res(self):
         return 2**self.rank
@@ -116,12 +116,15 @@ class MaskSet(object):
 
     @property
     def hexs(self):
-        return [mask2hex(k) for k in masks]
+        return [mask2hex(k) for k in self.masks]
     
     @property
     def frame(self):
         return np.array([k.flatten() for k in self.masks])
-        
+    
+    @property
+    def inv_frame(self):
+        return inv(self.frame)
 
 class Hadamard(MaskSet):
     '''
@@ -184,11 +187,41 @@ class Random(MaskSet):
     '''
     @property
     def masks(self):
+        # we have to cache this or its random everytime!
+        try:
+            return self._masks
+        except(AttributeError):
+            pass
+            
         rank = self.rank
         res = self.res
         dim = self.vector_dim
-        return [randint(0,2,(dim)).reshape(res,res) for k in range(res**2)]
+        masks =  [randint(0,2,(dim)).reshape(res,res) for k in range(res**2)]
+        self._masks = masks
+        return masks
 
+class FromHexs(MaskSet):
+    '''
+    Mask Set created from list of hexs
+    '''
+    def __init__(self, hexs):
+        self._hexs = hexs
+    
+    @property
+    def res(self):
+        return sqrt(len(self.masks[0]))
+    @property
+    def rank(self):
+        return int(log2(self.res))
+        
+    @property
+    def hexs(self):
+        return self._hexs
+        
+    @property
+    def masks(self):
+        return [hex2mask(k) for k in self.hexs]
+        
 
 ## decoder class
 class Decoder(object):
@@ -213,6 +246,7 @@ class Decoder(object):
         self._da = None
         self.caching = caching
         self.img_data = img_data
+        self.maskset = FromHexs(img_data.data['primary'].keys())
     
     @property
     def primary_hexs(self):
@@ -220,10 +254,10 @@ class Decoder(object):
     
     @property
     def res(self):
-        return int(sqrt(len(self.primary_hexs)))
+        return self.maskset.res
     @property
     def rank(self):
-        return int(log2(self.res))
+        return self.maskset.rank
     
     @property
     def da(self):
@@ -245,7 +279,8 @@ class Decoder(object):
          
         for k in hexs:
             #n = rf.ran(self.img_data.data['primary'][k])
-            n = {self.img_data.data['primary'][k][i].name[:-4] : self.img_data.data['primary'][k][i] for i in range (0, len(self.img_data.data['primary'][k]))}
+            this_hex = self.img_data.data['primary'][k]
+            n = {this_hex[i].name[:-4] : this_hex[i] for i in range (0, len(this_hex))}
             #print n
             if self.cal is not None:
                 n = self.cal.apply_cal_to_list(n)
@@ -261,17 +296,19 @@ class Decoder(object):
             
             s = n.s[:, 0, 0].reshape(-1, 1, 1) # pull out s complex number
             
-            m = hex2mask(k, rank = rank)
+            
+            
+            #m = hex2mask(k, rank = rank)
             #m = m/sum(m*m)
-            #print m
+            
             #copy mask allong frequency dimension
-            m = expand_dims(m, 0).repeat(s.shape[0], 0) 
-            #print m
+            #m = expand_dims(m, 0).repeat(s.shape[0], 0) 
             
-            m = m*s
-            #print m
             
-            M.append(m)
+            #m = m*s
+            
+            
+            M.append(s)
 
         M = array(M)
         n.frequency.unit = 'ghz'

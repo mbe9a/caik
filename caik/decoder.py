@@ -298,16 +298,11 @@ class Decoder(object):
             
             
             
-            #m = hex2mask(k, rank = rank)
+            m = hex2mask(k, rank = rank)
             #m = m/sum(m*m)
-            
             #copy mask allong frequency dimension
-            #m = expand_dims(m, 0).repeat(s.shape[0], 0) 
-            
-            
-            #m = m*s
-            
-            
+            m = expand_dims(m, 0).repeat(s.shape[0], 0) 
+            m = m*s
             M.append(s)
 
         M = array(M)

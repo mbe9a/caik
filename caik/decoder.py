@@ -259,25 +259,17 @@ class Decoder(object):
     def rank(self):
         return self.maskset.rank
     
-    @property
-    def da(self):
+    
+    def meas(self,name):
         '''
-        a xarray.DataArray object representing the entire data-set
-        '''
-        # return cached value if it exists
-        if self._da is not None and self.caching:
-            return self._da
-            
-        hexs = self.primary_hexs
-        #print hexs
-        res = self.res
-        #print res
-        rank = self.rank
-        #print rank
+        [calibrated or averaged]  measurements  of a given dut
         
-        M = [] # will hold weighted masks
-         
-        for k in hexs:
+        Returns 
+        --------
+        out : dict skrf.Networks
+        '''
+        # todo: use name to pull out single network
+        for k in self.primary_hexs:
             #n = rf.ran(self.img_data.data['primary'][k])
             this_hex = self.img_data.data['primary'][k]
             n = {this_hex[i].name[:-4] : this_hex[i] for i in range (0, len(this_hex))}
@@ -294,21 +286,39 @@ class Decoder(object):
             else:
                 n = n[sorted(n.keys())[-1]]
             
-            s = n.s[:, 0, 0].reshape(-1, 1, 1) # pull out s complex number
+            meas[k] = n
+            
+        return meas
             
             
+    @property
+    def da(self):
+        '''
+        a xarray.DataArray object representing the entire data-set
+        '''
+        # return cached value if it exists
+        if self._da is not None and self.caching:
+            return self._da
             
-            m = hex2mask(k, rank = rank)
-            #m = m/sum(m*m)
-            #copy mask allong frequency dimension
-            m = expand_dims(m, 0).repeat(s.shape[0], 0) 
-            m = m*s
-            M.append(s)
+        hexs = self.primary_hexs
+        res = self.res
+        nf = len(self.frequency)
+        
+        meas= self.meas
+        out = []
+        inv_frame = ms.inv_frame.T
+        for f_idx in range(nf):
+            # measurment vector
+            m = array([meas[h].s[f_idx,0,0].squeeze() for h in hexs] )
+            out.append(m.dot(inv_frame))
 
-        M = array(M)
+
+        out=array(out)
+        out = out.reshape((nf, ms.res,ms.res))
+
+        
         n.frequency.unit = 'ghz'
-        da = DataArray(M, coords = [('mask_hex', hexs),
-                                  ('f_ghz', n.frequency.f_scaled),
+        da = DataArray(out, coords = [ ('f_ghz', n.frequency.f_scaled),
                                   ('row', range(res)),
                                   ('col', range(res))])
         
@@ -323,9 +333,8 @@ class Decoder(object):
         
         the ports are the pixels. nuff said
         '''
-        s = self.da.mean(dim = 'mask_hex').data
-        #print s
-        return rf.Network(s = s, z0 = 1, frequency = self.frequency, *args, **kw)
+        return rf.Network(s=self.da.data,z0=1,frequency=self.frequency,
+                          *args, **kw)
 
     @property
     def frequency(self):

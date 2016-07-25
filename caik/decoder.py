@@ -352,13 +352,13 @@ class Decoder(object):
         '''
         n = self.ntwk[str(f)]
         x = n.__getattribute__(attr)[0,...]
+        temp = 0
         if dead:
-            temp = 0
             for k in range(0, self.res):
                 for j in range(0, self.res):
                     if x[j][k] < temp:
                         temp = x[j][k]
-        x[0][0] = temp
+            x[0][0] = temp
         matshow(x)
         colorbar()
         grid(0)

@@ -209,7 +209,7 @@ class FromHexs(MaskSet):
     
     @property
     def res(self):
-        return sqrt(len(self.masks[0]))
+        return sqrt(len(self.hexs))
     @property
     def rank(self):
         return int(log2(self.res))
@@ -220,12 +220,12 @@ class FromHexs(MaskSet):
         
     @property
     def masks(self):
-        return [hex2mask(k) for k in self.hexs]
+        return [hex2mask(k, rank=self.rank) for k in self.hexs]
         
 
 ## decoder class
 class Decoder(object):
-    def __init__(self, img_data, cal = None,  cal_set = None, averaging = True, caching = True):
+    def __init__(self, maskset, cal = None,  cal_set = None, averaging = True, caching = True):
         '''
         Simple Image Decoder 
         
@@ -246,7 +246,7 @@ class Decoder(object):
         self._da = None
         self.caching = caching
         self.img_data = img_data
-        self.maskset = FromHexs(img_data.data['primary'].keys())
+        self.maskset = maskset#FromHexs(img_data.data['primary'].keys())
     
     @property
     def primary_hexs(self):
@@ -260,7 +260,7 @@ class Decoder(object):
         return self.maskset.rank
     
     
-    def meas(self,name):
+    def meas(self,name=None):
         '''
         [calibrated or averaged]  measurements  of a given dut
         

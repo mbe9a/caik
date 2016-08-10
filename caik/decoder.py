@@ -228,12 +228,14 @@ class FromHexs(MaskSet):
 class Decoder(object):
     def __init__(self, dataset, calset, caching = True):
         '''
-        Simple Image Decoder 
+        Image Decoder 
         
         Examples
         ----------
-        dir_= '../CAI/Bar Image/hadamard_2/Primary'
-        d = Decoder(dir_ = dir_, averaging = True)
+        dec = Decoder(dataset ='../Imaging/hi_c.p',
+                      calset = '../Imaging/new_cals.p')
+
+        dec.image_interact(name=0, clims=(-4,4))
         
         
         d.da # full data available as `xarray.DataArray`
@@ -374,7 +376,7 @@ class Decoder(object):
 
    
     
-    def image_at(self, f, name=None,  attr = 's_db', dead = False):
+    def image_at(self, f, name=None,  attr = 's_db', dead = False,clims=None):
         '''
         Image at `f` for a given scalar `attr` of a skrf.Network
         
@@ -394,6 +396,8 @@ class Decoder(object):
         matshow(x)
         colorbar()
         grid(0)
+        if clims is not None:
+            clim(clims)
     
     def image_interact(self, name=None, attr = 's_db',clims=None):
         '''

@@ -20,6 +20,7 @@ from numpy.random import randint
 from xarray import DataArray
 from scipy.linalg import hadamard
 
+from cPickle import load
 
 import encoder
 import structure
@@ -88,12 +89,12 @@ def mask2hex(mask):
 ## masks 
 class MaskSet(object):
     def __init__(self, rank, invert = False):
-        self.rank =rank
+        self.rank =int(rank)
         self.invert=False
         
     @property
     def res(self):
-        return 2**self.rank
+        return int( 2**self.rank)
     
     @property
     def vector_dim(self):
@@ -209,7 +210,7 @@ class FromHexs(MaskSet):
     
     @property
     def res(self):
-        return sqrt(len(self.hexs))
+        return int(sqrt(len(self.hexs)))
     @property
     def rank(self):
         return int(log2(self.res))
@@ -225,7 +226,7 @@ class FromHexs(MaskSet):
 
 ## decoder class
 class Decoder(object):
-    def __init__(self, maskset, cal = None,  cal_set = None, averaging = True, caching = True):
+    def __init__(self, dataset, calset, caching = True):
         '''
         Simple Image Decoder 
         
@@ -240,17 +241,40 @@ class Decoder(object):
         d.image_interact() # images at all frequencies
         
         '''
-        self.cal_set = cal_set
-        self.cal = cal
-        self.averaging = averaging
+        
+        masktype='primary'
+        
+        ## allow dataset/calset to be a filename or open file
+        if isinstance(dataset, str):
+            with open(dataset, 'rb') as p:
+                self.dataset = load(p)
+        else:
+            self.dataset=dataset
+        
+        if isinstance(calset, str):
+            with open(calset, 'rb') as p:
+                self.calset = load(p)
+        else:
+            self.calset=calset
+        
+        # single  out masktype for now
+        self.dataset =self.dataset[masktype]
+        self.calset =self.calset[masktype]
+        
         self._da = None
         self.caching = caching
-        self.img_data = img_data
-        self.maskset = maskset#FromHexs(img_data.data['primary'].keys())
+        
+        
+        
+        
     
     @property
-    def primary_hexs(self):
-        return self.img_data.data['primary'].keys()
+    def hexs(self):
+        return self.dataset.keys()
+        
+    @property
+    def maskset(self):
+        return FromHexs(self.hexs)
     
     @property
     def res(self):
@@ -259,8 +283,16 @@ class Decoder(object):
     def rank(self):
         return self.maskset.rank
     
+    @property
+    def frequency(self):
+        return self.calset.values()[0].frequency
     
-    def meas(self,name=None):
+    def checkcal(self, k =0):
+        self.calset.values()[k].plot_caled_ntwks()
+        
+    
+        
+    def caled(self,name='measurement'):
         '''
         [calibrated or averaged]  measurements  of a given dut
         
@@ -268,59 +300,54 @@ class Decoder(object):
         --------
         out : dict skrf.Networks
         '''
-        # todo: use name to pull out single network
-        for k in self.primary_hexs:
-            #n = rf.ran(self.img_data.data['primary'][k])
-            this_hex = self.img_data.data['primary'][k]
-            n = {this_hex[i].name[:-4] : this_hex[i] for i in range (0, len(this_hex))}
-            #print n
-            if self.cal is not None:
-                n = self.cal.apply_cal_to_list(n)
-                #print n
-            elif self.cal_set is not None:
-                n = self.cal_set.data['primary'][k].apply_cal_to_list(n)
-
-            if self.averaging:
-                n = rf.average(n.values())
-                #print n.__getattribute__('s_db')[0,...]
-            else:
-                n = n[sorted(n.keys())[-1]]
+        frequency = self.frequency 
+        nf = len(frequency)
+        
+        caled = {}
+        for k in self.dataset:
+            ntwks = [l for l in self.dataset[k] if name in l.name]
+            caled[k] = self.calset[k].apply_cal_to_list(ntwks)
+            caled[k] = rf.average(caled[k])
             
-            meas[k] = n
-            
-        return meas
+        return caled
             
             
     @property
-    def da(self):
+    def da(self, name='measurement'):
         '''
         a xarray.DataArray object representing the entire data-set
         '''
         # return cached value if it exists
         if self._da is not None and self.caching:
             return self._da
-            
-        hexs = self.primary_hexs
-        res = self.res
-        nf = len(self.frequency)
+           
+        frequency = self.frequency 
+        nf = len(frequency)  
+           
+        ms = self.maskset
+        caled = self.caled(name=name)
         
-        meas= self.meas
-        out = []
+        s={}
+        for h,m in zip(ms.hexs, ms.masks):
+            s[h] = caled[h].s*sum(m) # scale s-parameters by number of on pixels
+            
         inv_frame = ms.inv_frame.T
+        out = []
         for f_idx in range(nf):
             # measurment vector
-            m = array([meas[h].s[f_idx,0,0].squeeze() for h in hexs] )
+            m = array([s[h][f_idx,0,0].squeeze() for h in ms.hexs] )
             out.append(m.dot(inv_frame))
 
 
         out=array(out)
         out = out.reshape((nf, ms.res,ms.res))
 
+
+        frequency.unit='ghz'
         
-        n.frequency.unit = 'ghz'
-        da = DataArray(out, coords = [ ('f_ghz', n.frequency.f_scaled),
-                                  ('row', range(res)),
-                                  ('col', range(res))])
+        da = DataArray(out, coords = [ ('f_ghz', frequency.f_scaled),
+                                  ('row', range(ms.res)),
+                                  ('col', range(ms.res))])
         
         if self.caching: 
             self._da = da 
@@ -336,11 +363,7 @@ class Decoder(object):
         return rf.Network(s=self.da.data,z0=1,frequency=self.frequency,
                           *args, **kw)
 
-    @property
-    def frequency(self):
-        #return rf.ran(self.img_data.data['primary'][self.primary_hexs[0]]).values()[0].frequency
-        return self.img_data.data['primary'].values()[0][0].frequency
-
+   
     
     def image_at(self, f,  attr = 's_db', dead = False):
         '''

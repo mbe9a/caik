@@ -292,7 +292,7 @@ class Decoder(object):
         
     
         
-    def caled(self,name='measurement'):
+    def caled(self,name=None):
         '''
         [calibrated or averaged]  measurements  of a given dut
         
@@ -300,20 +300,28 @@ class Decoder(object):
         --------
         out : dict skrf.Networks
         '''
+        
+        if name is None:
+            name = 'measurement' # default name 
         frequency = self.frequency 
         nf = len(frequency)
         
         caled = {}
-        for k in self.dataset:
-            ntwks = [l for l in self.dataset[k] if name in l.name]
-            caled[k] = self.calset[k].apply_cal_to_list(ntwks)
-            caled[k] = rf.average(caled[k])
-            
+        
+        if isinstance(name, str):
+            for k in self.dataset:
+                ntwks = [l for l in self.dataset[k] if name in l.name]
+                caled[k] = self.calset[k].apply_cal_to_list(ntwks)
+                caled[k] = rf.average(caled[k])
+        if isinstance(name, int):
+            for k in self.dataset:
+                caled[k] = self.calset[k].caled_ntwks[name]
+                
         return caled
             
             
-    @property
-    def da(self, name='measurement'):
+    
+    def da(self, name=None):
         '''
         a xarray.DataArray object representing the entire data-set
         '''
@@ -345,27 +353,28 @@ class Decoder(object):
 
         frequency.unit='ghz'
         
-        da = DataArray(out, coords = [ ('f_ghz', frequency.f_scaled),
+        dat= DataArray(out, coords = [ ('f_ghz', frequency.f_scaled),
                                   ('row', range(ms.res)),
                                   ('col', range(ms.res))])
         
         if self.caching: 
-            self._da = da 
-        return da
+            self._da = dat
+        return dat
     
-    @property
-    def ntwk(self, *args, **kw):
+    
+    def ntwk(self, name=None, *args, **kw):
         '''
         Network representation of this spectral image
         
         the ports are the pixels. nuff said
         '''
-        return rf.Network(s=self.da.data,z0=1,frequency=self.frequency,
+        da = self.da(name=name)
+        return rf.Network(s=da.data,z0=1,frequency=self.frequency,
                           *args, **kw)
 
    
     
-    def image_at(self, f,  attr = 's_db', dead = False):
+    def image_at(self, f, name=None,  attr = 's_db', dead = False):
         '''
         Image at `f` for a given scalar `attr` of a skrf.Network
         
@@ -373,7 +382,7 @@ class Decoder(object):
         ---------
         d.image_at(634,'s_db')
         '''
-        n = self.ntwk[str(f)]
+        n = self.ntwk(name=name)[str(f)]
         x = n.__getattribute__(attr)[0,...]
         temp = 0
         if dead:
@@ -386,17 +395,20 @@ class Decoder(object):
         colorbar()
         grid(0)
     
-    def image_interact(self,  attr = 's_db'):
+    def image_interact(self, name=None, attr = 's_db',clims=None):
         '''
         interactive repr of the sprectral image projection onto `attr`
         '''
         freq = self.frequency
         f = (freq.start_scaled, freq.stop_scaled,freq.step_scaled)
         def func(f):
-            x = self.ntwk[str(f)].__getattribute__(attr)[0,...]
+            x = self.ntwk(name=name)[str(f)].__getattribute__(attr)[0,...]
             matshow(x)
             colorbar()
             grid(0)
+            if clims is not None:
+                clim(clims)
+            
         return interact(func, f = f )
         
         
